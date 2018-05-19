@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C9E33DC8-5168-4474-A4CD-7ABCF431C773}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>KittopiaTech</RootNamespace>
+    <AssemblyName>KittopiaTech</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\build\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\build\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Assembly-CSharp.1.4.3\lib\net35\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kopernicus, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Kopernicus.1.4.3.2\lib\net35\Kopernicus.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kopernicus.Components, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Kopernicus.Components.1.4.3.2\lib\net35\Kopernicus.Components.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kopernicus.OnDemand, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Kopernicus.OnDemand.1.4.3.2\lib\net35\Kopernicus.OnDemand.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kopernicus.Parser, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Kopernicus.Parser.1.4.3.2\lib\net35\Kopernicus.Parser.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ModularFlightIntegrator, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\ModularFlightIntegrator.1.2.5.0\lib\net35\ModularFlightIntegrator.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\UnityEngine.1.4.3\lib\net35\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\UnityEngine.UI.1.4.3\lib\net35\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="KittopiaTech.cs" />
+    <Compile Include="RuntimePreviewGenerator.cs" />
+    <Compile Include="PlanetConfigExporter.cs" />
+    <Compile Include="PlanetTextureExporter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIBox.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIButton.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUI.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIGridLayout.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIHorizontalLayout.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIImage.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUILabel.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIScrollList.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUISpace.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUITextInput.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIToggle.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIToggleButton.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUIVerticalLayout.cs" />
+    <Compile Include="UI\Framework\Declaration\Modifiers.cs" />
+    <Compile Include="UI\Framework\FixScrollRect.cs" />
+    <Compile Include="UI\Framework\StyleConverter.cs" />
+    <Compile Include="UI\Framework\Window.cs" />
+    <Compile Include="UI\Framework\WindowSingleton.cs" />
+    <Compile Include="UI\KopernicusEditor.cs" />
+    <Compile Include="UI\PlanetSelector.cs" />
+    <Compile Include="UI\ValueEditor.cs" />
+    <Compile Include="UI\ValueEditors\BooleanEditor.cs" />
+    <Compile Include="UI\ValueEditors\IntegerEditor.cs" />
+    <Compile Include="UI\ValueEditors\NumericCollectionEditor.cs" />
+    <Compile Include="UI\ValueEditors\SingleEditor.cs" />
+    <Compile Include="UI\ValueEditors\StringCollectionEditor.cs" />
+    <Compile Include="UI\ValueEditors\StringEditor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
