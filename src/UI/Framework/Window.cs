@@ -78,6 +78,10 @@ namespace KittopiaTech.UI.Framework
                 Skin, false);
             Dialog.SetDraggable(true);
             Dialog.RTrf.anchoredPosition = new Vector2(Position.x, -Position.y);
+            foreach (RectTransform transform in Dialog.RTrf.GetComponentsInChildren<RectTransform>())
+            {
+                transform.gameObject.AddComponent<ClickThroughBlocker>();
+            }
         }
 
         /// <summary>
@@ -151,6 +155,10 @@ namespace KittopiaTech.UI.Framework
             Dialog.SetDraggable(true);
             Dialog.gameObject.SetActive(IsVisible);
             Dialog.RTrf.anchoredPosition = pos;
+            foreach (RectTransform transform in Dialog.RTrf.GetComponentsInChildren<RectTransform>())
+            {
+                transform.gameObject.AddComponent<ClickThroughBlocker>();
+            }
         }
 
         /// <summary>

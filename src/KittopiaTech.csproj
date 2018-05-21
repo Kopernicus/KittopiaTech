@@ -72,6 +72,7 @@
     <Compile Include="KittopiaTech.cs" />
     <Compile Include="RuntimePreviewGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\Framework\ClickThroughBlocker.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUIBox.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUIButton.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUI.cs" />
