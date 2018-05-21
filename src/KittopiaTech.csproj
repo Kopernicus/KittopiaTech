@@ -37,8 +37,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Kopernicus, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Kopernicus.1.4.3.2\lib\net35\Kopernicus.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\Kopernicus\build\GameData\Kopernicus\Plugins\Kopernicus.dll</HintPath>
     </Reference>
     <Reference Include="Kopernicus.Components, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\Kopernicus.Components.1.4.3.2\lib\net35\Kopernicus.Components.dll</HintPath>
@@ -72,10 +71,7 @@
   <ItemGroup>
     <Compile Include="KittopiaTech.cs" />
     <Compile Include="RuntimePreviewGenerator.cs" />
-    <Compile Include="PlanetConfigExporter.cs" />
-    <Compile Include="PlanetTextureExporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUIBox.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUIButton.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUI.cs" />
@@ -84,6 +80,7 @@
     <Compile Include="UI\Framework\Declaration\DialogGUIImage.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUILabel.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUIScrollList.cs" />
+    <Compile Include="UI\Framework\Declaration\DialogGUISlider.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUISpace.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUITextInput.cs" />
     <Compile Include="UI\Framework\Declaration\DialogGUIToggle.cs" />
@@ -98,6 +95,7 @@
     <Compile Include="UI\PlanetSelector.cs" />
     <Compile Include="UI\ValueEditor.cs" />
     <Compile Include="UI\ValueEditors\BooleanEditor.cs" />
+    <Compile Include="UI\ValueEditors\ColorEditor.cs" />
     <Compile Include="UI\ValueEditors\IntegerEditor.cs" />
     <Compile Include="UI\ValueEditors\NumericCollectionEditor.cs" />
     <Compile Include="UI\ValueEditors\SingleEditor.cs" />

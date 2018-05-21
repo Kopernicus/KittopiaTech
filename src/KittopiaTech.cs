@@ -10,6 +10,12 @@ namespace KittopiaTech
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class KittopiaTech : MonoBehaviour
     {
+        /// <summary>
+        /// The UI skin definition for Kittopias UI
+        /// </summary>
+        public static UISkinDef Skin { get; set; }
+        
+        
         void Start()
         {
             // Stop the Garbage Collector
@@ -38,9 +44,9 @@ namespace KittopiaTech
 
         void OnGUI()
         {
-            if (Tools.KittopiaSkin == null)
+            if (Skin == null)
             {
-                Tools.KittopiaSkin = StyleConverter.Convert(GUI.skin);
+                Skin = StyleConverter.Convert(GUI.skin);
             }
         }
     }

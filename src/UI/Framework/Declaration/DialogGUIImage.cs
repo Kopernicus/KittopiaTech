@@ -41,5 +41,16 @@ namespace KittopiaTech.UI.Framework.Declaration
             _elements.Add(element);
             return element;
         }
+
+        public static DialogGUIImage GUIImage(Texture i, Single x, Single y, Color t, Modifier<DialogGUIImage> modifier = null)
+        {
+            DialogGUIImage element = new DialogGUIImage(new Vector2(x, y), Vector2.zero, t, i);
+            if (modifier != null)
+            {
+                element = modifier(element);
+            }
+            _elements.Add(element);
+            return element;
+        }
     }
 }

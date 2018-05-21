@@ -106,6 +106,15 @@ namespace KittopiaTech.UI.Framework.Declaration
                 return item;
             };
         }
+        
+        public static Modifier<T> OnUpdate<T>(Action<T> callback) where T : DialogGUIBase
+        {
+            return item =>
+            {
+                item.OnUpdate += () => callback(item);
+                return item;
+            };
+        }
        
     }
 }

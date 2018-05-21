@@ -2,6 +2,7 @@
 using System.Reflection;
 using CommNet;
 using Kopernicus;
+using Kopernicus.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,19 +13,21 @@ namespace KittopiaTech.UI.ValueEditors
 {
     public class NumericCollectionEditor<TNum, TEd> : ValueEditor where TEd : ValueEditor
     {
-        public NumericCollectionEditor(String name, ParserTarget target, MemberInfo member, Func<Object> reference, Func<String> getValue, Func<String, String> setValue) : base(name, target, member, reference, getValue, setValue)
+        public NumericCollectionEditor(String name, ParserTarget target, MemberInfo member, Func<Object> reference,
+            Func<String> getValue, Func<String, String> setValue) : base(name, target, member, reference, getValue,
+            setValue)
         {
         }
 
         protected override void BuildDialog()
         {
             // Skin
-            Skin = Tools.KittopiaSkin;
-            
+            Skin = KittopiaTech.Skin;
+
             // Build a list of collection elements
             NumericCollectionParser<TNum> collectionParser =
                 (NumericCollectionParser<TNum>) Tools.GetValue(Member, Reference);
-            
+
             // Display a scroll area
             GUIScrollList(new Vector2(290, 400), false, true, () =>
             {

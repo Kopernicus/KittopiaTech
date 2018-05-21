@@ -9,15 +9,17 @@ namespace KittopiaTech.UI.ValueEditors
 {
     public class BooleanEditor : ValueEditor
     {
-        public BooleanEditor(String name, ParserTarget target, MemberInfo member, Func<Object> reference, Func<String> getValue, Func<String, String> setValue) : base(name, target, member, reference, getValue, setValue)
+        public BooleanEditor(String name, ParserTarget target, MemberInfo member, Func<Object> reference,
+            Func<String> getValue, Func<String, String> setValue) : base(name, target, member, reference, getValue,
+            setValue)
         {
         }
 
         protected override void BuildDialog()
         {
             // Skin
-            Skin = Tools.KittopiaSkin;
-            
+            Skin = KittopiaTech.Skin;
+
             GUIToggleButton(Boolean.Parse(GetValue()), "Toggle", e => SetValue(e.ToString()), -1, 25f);
         }
 

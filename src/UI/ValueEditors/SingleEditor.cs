@@ -10,14 +10,16 @@ namespace KittopiaTech.UI.ValueEditors
 {
     public class SingleEditor : ValueEditor
     {
-        public SingleEditor(String name, ParserTarget target, MemberInfo member, Func<Object> reference, Func<String> getValue, Func<String, String> setValue) : base(name, target, member, reference, getValue, setValue)
+        public SingleEditor(String name, ParserTarget target, MemberInfo member, Func<Object> reference,
+            Func<String> getValue, Func<String, String> setValue) : base(name, target, member, reference, getValue,
+            setValue)
         {
         }
 
         protected override void BuildDialog()
         {
             // Skin
-            Skin = Tools.KittopiaSkin;
+            Skin = KittopiaTech.Skin;
 
             GUISpace(5f);
 

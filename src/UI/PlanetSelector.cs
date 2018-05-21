@@ -18,7 +18,7 @@ namespace KittopiaTech.UI
         {
             Position = new Vector2(60f, 60f);
         }
-        
+
         public override String GetTitle()
         {
             return "KittopiaTech - Planet Selector";
@@ -33,12 +33,12 @@ namespace KittopiaTech.UI
         /// A list of all active body editors
         /// </summary>
         public Dictionary<String, KopernicusEditor> ActiveEditors = new Dictionary<String, KopernicusEditor>();
-        
+
         /// <summary>
         /// The thumbnails of the loaded bodies
         /// </summary>
         public Dictionary<String, Texture2D> Thumbnails = new Dictionary<String, Texture2D>();
-        
+
         /// <summary>
         /// The loaded bodies
         /// </summary>
@@ -51,7 +51,7 @@ namespace KittopiaTech.UI
         {
             foreach (CelestialBody body in PSystemManager.Instance.localBodies)
             {
-                Thumbnails.Add(body.transform.name, PlanetTextureExporter.GetPlanetThumbnail(body));
+                Thumbnails.Add(body.transform.name, GetPlanetThumbnail(body));
                 Bodies.Add(body.transform.name, new Body(body));
             }
         }
@@ -59,7 +59,7 @@ namespace KittopiaTech.UI
         protected override void BuildDialog()
         {
             // Skin
-            Skin = Tools.KittopiaSkin;
+            Skin = KittopiaTech.Skin;
 
             GUIScrollList(new Vector2(290f, 500f), false, true, () =>
             {
@@ -91,7 +91,7 @@ namespace KittopiaTech.UI
             });
         }
 
-        protected void TogglePlanetEditor(CelestialBody body, Boolean active)
+        private void TogglePlanetEditor(CelestialBody body, Boolean active)
         {
             if (ActiveEditors.ContainsKey(body.transform.name))
             {
@@ -106,10 +106,33 @@ namespace KittopiaTech.UI
             }
             else
             {
-                KopernicusEditor editor = new KopernicusEditor(() => Bodies[body.transform.name], body, body.transform.name);
+                KopernicusEditor editor =
+                    new KopernicusEditor(() => Bodies[body.transform.name], body, body.transform.name);
                 editor.Open();
                 ActiveEditors.Add(body.transform.name, editor);
             }
+        }
+
+        /// <summary>
+        /// Generates a thumbnail for the planet
+        /// </summary>
+        public static Texture2D GetPlanetThumbnail(CelestialBody body)
+        {
+            // Config
+            RuntimePreviewGenerator.TransparentBackground = true;
+            RuntimePreviewGenerator.BackgroundColor = Color.clear;
+            RuntimePreviewGenerator.PreviewDirection = Vector3.forward;
+            RuntimePreviewGenerator.Padding = -0.15f;
+
+            GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.GetComponentInChildren<MeshFilter>().sharedMesh =
+                body.scaledBody.GetComponent<MeshFilter>().sharedMesh;
+            sphere.GetComponentInChildren<MeshRenderer>().sharedMaterial =
+                body.scaledBody.GetComponent<MeshRenderer>().sharedMaterial;
+
+            Texture2D finalTexture = RuntimePreviewGenerator.GenerateModelPreview(sphere.transform, 256, 256);
+            UnityEngine.Object.DestroyImmediate(sphere);
+            return finalTexture;
         }
     }
 }

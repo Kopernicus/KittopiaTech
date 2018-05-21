@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
 namespace KittopiaTech.UI.Framework.Declaration
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static partial class DialogGUI
     {
         public static DialogGUIToggle GUIToggle(Boolean set, String lbel, Callback<Boolean> selected, Single w = -1f, Single h = -1f, Modifier<DialogGUIToggle> modifier = null)
