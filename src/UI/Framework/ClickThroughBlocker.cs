@@ -8,17 +8,10 @@ namespace KittopiaTech.UI.Framework
     {
         private Boolean _locked;
 
-        private PopupDialog _dialog;
-
-        void Start()
-        {
-            _dialog = GetComponent<PopupDialog>();
-        }
-
         void Update()
         {
             Boolean inputLocked = UIMasterController.Instance &&
-                                   RectTransformUtility.RectangleContainsScreenPoint(_dialog.RTrf, Input.mousePosition,
+                                   RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition,
                                        UIMasterController.Instance.uiCamera);
             if (inputLocked && !_locked)
             {
