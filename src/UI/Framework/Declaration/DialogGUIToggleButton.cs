@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UniLinq;
-using UnityEngine;
-using UnityEngine.UI;
 
 namespace KittopiaTech.UI.Framework.Declaration
 {

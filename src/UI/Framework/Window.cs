@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Linq;
 using KittopiaTech.UI.Framework.Declaration;
 using KSP.UI.TooltipTypes;
-using KSP.UI.Util;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace KittopiaTech.UI.Framework
 {
@@ -63,6 +60,11 @@ namespace KittopiaTech.UI.Framework
         /// </summary>
         // ReSharper disable once StaticMemberInGenericType
         private static readonly Tooltip_Text Prefab = AssetBase.GetPrefab<Tooltip_Text>("Tooltip_Text");
+        
+        protected void Integrate(Window<T> other)
+        {
+            other.BuildDialog();
+        }
 
         /// <summary>
         /// Opens a new window
@@ -78,10 +80,7 @@ namespace KittopiaTech.UI.Framework
                 Skin, false);
             Dialog.SetDraggable(true);
             Dialog.RTrf.anchoredPosition = new Vector2(Position.x, -Position.y);
-            foreach (RectTransform transform in Dialog.RTrf.GetComponentsInChildren<RectTransform>())
-            {
-                transform.gameObject.AddComponent<ClickThroughBlocker>();
-            }
+            Dialog.gameObject.AddComponent<ClickThroughBlocker>();
         }
 
         /// <summary>

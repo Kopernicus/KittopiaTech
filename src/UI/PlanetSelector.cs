@@ -26,7 +26,7 @@ namespace KittopiaTech.UI
 
         public override Single GetWidth()
         {
-            return 300f;
+            return 300;
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace KittopiaTech.UI
             else
             {
                 KopernicusEditor editor =
-                    new KopernicusEditor(() => Bodies[body.transform.name], body, body.transform.name);
+                    new KopernicusEditor(() => Bodies[body.transform.name], v => Bodies[body.transform.name] = (Body) v, body, body.transform.name);
                 editor.Open();
                 ActiveEditors.Add(body.transform.name, editor);
             }

@@ -93,15 +93,21 @@
     <Compile Include="UI\Framework\Window.cs" />
     <Compile Include="UI\Framework\WindowSingleton.cs" />
     <Compile Include="UI\KopernicusEditor.cs" />
+    <Compile Include="UI\CollectionEditor.cs" />
     <Compile Include="UI\PlanetSelector.cs" />
+    <Compile Include="UI\TypeSelector.cs" />
     <Compile Include="UI\ValueEditor.cs" />
     <Compile Include="UI\ValueEditors\BooleanEditor.cs" />
     <Compile Include="UI\ValueEditors\ColorEditor.cs" />
+    <Compile Include="UI\ValueEditors\DoubleEditor.cs" />
     <Compile Include="UI\ValueEditors\IntegerEditor.cs" />
     <Compile Include="UI\ValueEditors\NumericCollectionEditor.cs" />
     <Compile Include="UI\ValueEditors\SingleEditor.cs" />
     <Compile Include="UI\ValueEditors\StringCollectionEditor.cs" />
     <Compile Include="UI\ValueEditors\StringEditor.cs" />
+    <Compile Include="UI\ValueEditors\Vector2Editor.cs" />
+    <Compile Include="UI\ValueEditors\Vector3DEditor.cs" />
+    <Compile Include="UI\ValueEditors\Vector3Editor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

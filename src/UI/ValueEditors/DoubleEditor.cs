@@ -6,7 +6,7 @@ using static KittopiaTech.UI.Framework.Declaration.DialogGUI;
 
 namespace KittopiaTech.UI.ValueEditors
 {
-    public class SingleEditor : ValueEditor
+    public class DoubleEditor : ValueEditor
     {
         protected override void BuildDialog()
         {
@@ -19,22 +19,22 @@ namespace KittopiaTech.UI.ValueEditors
             {
                 // Decrement Button
                 GUIButton("<",
-                    () => SetValue((NumericParser<Single>) Math.Max(Single.MinValue + 1,
-                        (NumericParser<Single>) GetValue() - 1)),
+                    () => SetValue((NumericParser<Double>) Math.Max(Double.MinValue + 1,
+                        (NumericParser<Double>) GetValue() - 1)),
                     25f, 25f, false, () => { });
 
                 // Text Edit
                 GUITextInput("", false, Int32.MaxValue, s =>
                     {
-                        SetValue(Tools.SetValueFromString(typeof(NumericParser<Single>), GetValue(), s));
+                        SetValue(Tools.SetValueFromString(typeof(NumericParser<Double>), GetValue(), s));
                         return s;
                     }, () => Tools.FormatParsable(GetValue()), TMP_InputField.ContentType.IntegerNumber,
                     25f);
 
                 // Increment Button
                 GUIButton(">",
-                    () => SetValue((NumericParser<Single>) Math.Min(Single.MaxValue - 1,
-                        (NumericParser<Single>) GetValue() + 1)),
+                    () => SetValue((NumericParser<Double>) Math.Min(Double.MaxValue - 1,
+                        (NumericParser<Double>) GetValue() + 1)),
                     25f, 25f, false, () => { });
             });
         }
@@ -44,7 +44,7 @@ namespace KittopiaTech.UI.ValueEditors
             return 400;
         }
 
-        public SingleEditor(String name, Func<Object> reference, Func<Object> getValue, Action<Object> setValue) : base(name, reference, getValue, setValue)
+        public DoubleEditor(String name, Func<Object> reference, Func<Object> getValue, Action<Object> setValue) : base(name, reference, getValue, setValue)
         {
         }
     }

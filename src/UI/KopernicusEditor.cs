@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 using KittopiaTech.UI.Framework;
 using KittopiaTech.UI.ValueEditors;
 using Kopernicus;
-using Kopernicus.Configuration;
 using Kopernicus.UI;
 using TMPro;
 using UnityEngine;
@@ -31,6 +29,8 @@ namespace KittopiaTech.UI
 
             public Func<Object> GetValue;
         }
+        
+        public Action<Object> SetValue;
 
         /// <summary>
         /// The Kopernicus Parser object that is displayed
@@ -40,24 +40,25 @@ namespace KittopiaTech.UI
         /// <summary>
         /// The name of the object we are editing
         /// </summary>
-        private String _name;
+        protected String _name;
 
         /// <summary>
         /// All sub-windows that were spawned by this window
         /// </summary>
-        private Dictionary<String, KopernicusEditor> _children;
+        protected readonly Dictionary<Object, KopernicusEditor> Children;
 
         /// <summary>
         /// All value editors that were spawned by this window
         /// </summary>
-        private Dictionary<String, ValueEditor> _valueEditors;
+        protected readonly Dictionary<Object, ValueEditor> ValueEditors;
 
-        public KopernicusEditor(Func<Object> value, CelestialBody body, String name)
+        public KopernicusEditor(Func<Object> value, Action<Object> setValue, CelestialBody body, String name)
         {
             Info = new EditorInfo {GetValue = value, Body = body};
+            SetValue = setValue;
             _name = name;
-            _children = new Dictionary<String, KopernicusEditor>();
-            _valueEditors = new Dictionary<String, ValueEditor>();
+            Children = new Dictionary<Object, KopernicusEditor>();
+            ValueEditors = new Dictionary<Object, ValueEditor>();
         }
 
         public override String GetTitle()
@@ -105,34 +106,35 @@ namespace KittopiaTech.UI
         private void DisplayParserTarget(ParserTarget target, MemberInfo member)
         {
             // Don't display hidden options
-            if (Tools.HasAttribute<KittopiaHideOption>(member))
+            if (Tools.HasAttribute<KittopiaHideOption>(member) &&
+                !Tools.GetAttributes<KittopiaHideOption>(member)[0].show)
             {
                 return;
             }
 
-            GUIHorizontalLayout(() =>
-            {
-                GUILabel(target.FieldName, modifier: Alignment(TextAlignmentOptions.Left));
-                GUIFlexibleSpace();
-                GUILabel(target.Optional ? "Optional" : "Required",
-                    modifier: Alignment(TextAlignmentOptions.Right)
-                        .And(TextColor(Color.gray)));
-            });
-
-            // Display a KittopiaDescription
-            String description = Tools.GetDescription(member);
-            if (!String.IsNullOrEmpty(description))
-            {
-                GUISpace(2f);
-                GUILabel(description,
-                    modifier: TextColor(Color.gray));
-            }
-
-            GUISpace(5f);
-
             // Check if the object is a list or a single element
             if (!Tools.IsCollection(target))
             {
+                GUIHorizontalLayout(() =>
+                {
+                    GUILabel(target.FieldName, modifier: Alignment(TextAlignmentOptions.Left));
+                    GUIFlexibleSpace();
+                    GUILabel(target.Optional ? "Optional" : "Required",
+                        modifier: Alignment(TextAlignmentOptions.Right)
+                            .And(TextColor(Color.gray)));
+                });
+
+                // Display a KittopiaDescription
+                String description = Tools.GetDescription(member);
+                if (!String.IsNullOrEmpty(description))
+                {
+                    GUISpace(2f);
+                    GUILabel(description,
+                        modifier: TextColor(Color.gray));
+                }
+
+                GUISpace(5f);
+                
                 // If the element is loaded from a config node, it needs a new window
                 // Simply values can be edited with an inline textfield
                 ConfigType configType =
@@ -160,11 +162,13 @@ namespace KittopiaTech.UI
                                     {
                                         Tools.Destruct(value);
                                         Tools.SetValue(member, Info.Value, null);
+                                        SetValue(null);
                                     }
                                     else
                                     {
-                                        Tools.SetValue(member, Info.Value,
-                                            Tools.Construct(Tools.MemberType(member), Info.Body));
+                                        Object v = Tools.Construct(Tools.MemberType(member), Info.Body);
+                                        Tools.SetValue(member, Info.Value, v);
+                                        SetValue(v);
                                     }
                                 }, 25f, 25f, false,
                                 () => { });
@@ -181,6 +185,75 @@ namespace KittopiaTech.UI
                         GUIToggleButton(false, ">", e => ToggleValueEditor(target, member, e), 25f, 25f,
                             Enabled<DialogGUIToggleButton>(() => HasValueEditor(member)));
                     });
+                }
+            }
+            else
+            {
+                ParserTargetCollection collection = (ParserTargetCollection) target;
+                
+                // Is the collection parsing a subnode, or this one?
+                if (collection.FieldName != "self")
+                {
+                    GUIHorizontalLayout(() =>
+                    {
+                        GUILabel(target.FieldName, modifier: Alignment(TextAlignmentOptions.Left));
+                        GUIFlexibleSpace();
+                        GUILabel(target.Optional ? "Optional" : "Required",
+                            modifier: Alignment(TextAlignmentOptions.Right)
+                                .And(TextColor(Color.gray)));
+                    });
+
+                    // Display a KittopiaDescription
+                    String description = Tools.GetDescription(member);
+                    if (!String.IsNullOrEmpty(description))
+                    {
+                        GUISpace(2f);
+                        GUILabel(description,
+                            modifier: TextColor(Color.gray));
+                    }
+
+                    GUISpace(5f);
+
+                    GUIHorizontalLayout(() =>
+                    {
+                        // Edit Button
+                        GUIToggleButton(false, "Edit", e => ToggleCollectionEditor(target, member, e), -1f, 25f,
+                            Enabled<DialogGUIToggleButton>(() => Tools.GetValue(member, Info.Value) != null));
+
+                        // Button to create or destroy the element
+                        if (Tools.HasAttribute<KittopiaUntouchable>(member))
+                        {
+                            GUIButton(Tools.GetValue(member, Info.Value) != null ? "x" : "+", () => { }, 25f, 25f,
+                                false, () => { }, Enabled<DialogGUIButton>(() => false));
+                        }
+                        else
+                        {
+                            GUIButton(() => Tools.GetValue(member, Info.Value) != null ? "x" : "+", () =>
+                                {
+                                    Object value = Tools.GetValue(member, Info.Value);
+                                    if (value != null)
+                                    {
+                                        Tools.Destruct(value);
+                                        Tools.SetValue(member, Info.Value, null);
+                                        SetValue(null);
+                                    }
+                                    else
+                                    {
+                                        Object v = Tools.Construct(Tools.MemberType(member), Info.Body);
+                                        Tools.SetValue(member, Info.Value, v);
+                                        SetValue(v);
+                                    }
+                                }, 25f, 25f, false,
+                                () => { });
+                        }
+                    });
+                }
+                else
+                {
+                    new CollectionEditor(() => Tools.GetValue(member, Info.Value),
+                        v => Tools.SetValue(member, Info.Value, v), Info.Body,
+                        Info.Body.transform.name + " - " + target.FieldName, member, (ParserTargetCollection) target,
+                        () => Info.Value).DisplayCollection();
                 }
             }
 
@@ -227,23 +300,51 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleSubEditor(ParserTarget target, MemberInfo member, Boolean active)
         {
-            if (_children.ContainsKey(target.FieldName))
+            if (Children.ContainsKey(target.FieldName))
             {
                 if (active)
                 {
-                    _children[target.FieldName].Show();
+                    Children[target.FieldName].Show();
                 }
                 else
                 {
-                    _children[target.FieldName].Hide();
+                    Children[target.FieldName].Hide();
                 }
             }
             else
             {
-                KopernicusEditor editor = new KopernicusEditor(() => Tools.GetValue(member, Info.Value), Info.Body,
+                KopernicusEditor editor = new KopernicusEditor(() => Tools.GetValue(member, Info.Value),
+                    v => Tools.SetValue(member, Info.Value, v), Info.Body,
                     Info.Body.transform.name + " - " + target.FieldName);
                 editor.Open();
-                _children.Add(target.FieldName, editor);
+                Children.Add(target.FieldName, editor);
+            }
+        }
+
+        /// <summary>
+        /// Toggles a subeditor for a ParserTargetCollection
+        /// </summary>
+        private void ToggleCollectionEditor(ParserTarget target, MemberInfo member, Boolean active)
+        {
+            if (Children.ContainsKey(target.FieldName))
+            {
+                if (active)
+                {
+                    Children[target.FieldName].Show();
+                }
+                else
+                {
+                    Children[target.FieldName].Hide();
+                }
+            }
+            else
+            {
+                KopernicusEditor editor = new CollectionEditor(() => Tools.GetValue(member, Info.Value),
+                    v => Tools.SetValue(member, Info.Value, v), Info.Body,
+                    Info.Body.transform.name + " - " + target.FieldName, member, target as ParserTargetCollection,
+                    () => Info.Value);
+                editor.Open();
+                Children.Add(target.FieldName, editor);
             }
         }
 
@@ -252,24 +353,25 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleValueEditor(ParserTarget target, MemberInfo member, Boolean active)
         {
-            if (_valueEditors.ContainsKey(target.FieldName))
+            if (ValueEditors.ContainsKey(target.FieldName))
             {
                 if (active)
                 {
-                    _valueEditors[target.FieldName].Show();
+                    ValueEditors[target.FieldName].Show();
                 }
                 else
                 {
-                    _valueEditors[target.FieldName].Hide();
+                    ValueEditors[target.FieldName].Hide();
                 }
             }
             else
             {
-                ValueEditor editor = GetValueEditor(target, member);
-                if (editor != null)
+                Type editorType = GetValueEditor(Tools.MemberType(member));
+                if (editorType != null)
                 {
+                    ValueEditor editor = CreateValueEditor(editorType, target, member);
                     editor.Open();
-                    _valueEditors.Add(target.FieldName, editor);
+                    ValueEditors.Add(target.FieldName, editor);
                 }
             }
         }
@@ -277,52 +379,76 @@ namespace KittopiaTech.UI
         /// <summary>
         /// Creates a new value editor for the type of the supplied member
         /// </summary>
-        private ValueEditor GetValueEditor(ParserTarget target, MemberInfo member)
+        protected static Type GetValueEditor(Type memberType)
         {
-            Type memberType = Tools.MemberType(member);
             if (memberType == typeof(String))
             {
-                return CreateValueEditor<StringEditor>(target, member);
+                return typeof(StringEditor);
             }
 
             if (memberType == typeof(NumericParser<Int32>))
             {
-                return CreateValueEditor<IntegerEditor>(target, member);
+                return typeof(IntegerEditor);
             }
 
             if (memberType == typeof(NumericParser<Single>))
             {
-                return CreateValueEditor<SingleEditor>(target, member);
+                return typeof(SingleEditor);
+            }
+
+            if (memberType == typeof(NumericParser<Double>))
+            {
+                return typeof(DoubleEditor);
             }
 
             if (memberType == typeof(NumericParser<Boolean>))
             {
-                return CreateValueEditor<BooleanEditor>(target, member);
+                return typeof(BooleanEditor);
             }
 
             if (memberType == typeof(StringCollectionParser))
             {
-                return CreateValueEditor<StringCollectionEditor>(target, member);
+                return typeof(StringCollectionEditor);
             }
 
             if (memberType == typeof(NumericCollectionParser<Int32>))
             {
-                return CreateValueEditor<NumericCollectionEditor<Int32, IntegerEditor>>(target, member);
+                return typeof(NumericCollectionEditor<Int32, IntegerEditor>);
             }
 
             if (memberType == typeof(NumericCollectionParser<Single>))
             {
-                return CreateValueEditor<NumericCollectionEditor<Single, SingleEditor>>(target, member);
+                return typeof(NumericCollectionEditor<Single, SingleEditor>);
+            }
+
+            if (memberType == typeof(NumericCollectionParser<Double>))
+            {
+                return typeof(NumericCollectionEditor<Double, DoubleEditor>);
             }
 
             if (memberType == typeof(NumericCollectionParser<Boolean>))
             {
-                return CreateValueEditor<NumericCollectionEditor<Boolean, BooleanEditor>>(target, member);
+                return typeof(NumericCollectionEditor<Boolean, BooleanEditor>);
             }
 
             if (memberType == typeof(ColorParser))
             {
-                return CreateValueEditor<ColorEditor>(target, member);
+                return typeof(ColorEditor);
+            }
+
+            if (memberType == typeof(Vector3Parser))
+            {
+                return typeof(Vector3Editor);
+            }
+
+            if (memberType == typeof(Vector3DParser))
+            {
+                return typeof(Vector3DEditor);
+            }
+
+            if (memberType == typeof(Vector2Parser))
+            {
+                return typeof(Vector2Editor);
             }
 
             return null;
@@ -331,66 +457,28 @@ namespace KittopiaTech.UI
         /// <summary>
         /// Creates a new instance of a value editor
         /// </summary>
-        private T CreateValueEditor<T>(ParserTarget target, MemberInfo member) where T : ValueEditor
+        private ValueEditor CreateValueEditor(Type editorType, ParserTarget target, MemberInfo member)
         {
-            return (T) Activator.CreateInstance(typeof(T),
-                Info.Body.transform.name + " - " + target.FieldName, target, member,
-                Info.GetValue, new Func<String>(() => Tools.FormatParsable(Tools.GetValue(member, Info.Value)) ?? ""),
-                new Func<String, String>(s => Tools.ApplyInput(member, s, Info.Value)));
+            return (ValueEditor) Activator.CreateInstance(editorType,
+                Info.Body.transform.name + " - " + target.FieldName, Info.GetValue,
+                new Func<Object>(() => Tools.GetValue(member, Info.Value)),
+                new Action<Object>(s => Tools.SetValue(member, Info.Value, s)));
         }
 
         /// <summary>
         /// Returns whether the supplied member can be edited in a value editor
         /// </summary>
-        private static Boolean HasValueEditor(MemberInfo member)
+        protected static Boolean HasValueEditor(MemberInfo member)
         {
-            Type memberType = Tools.MemberType(member);
-            if (memberType == typeof(String))
-            {
-                return true;
-            }
+            return HasValueEditor(Tools.MemberType(member));
+        }
 
-            if (memberType == typeof(NumericParser<Int32>))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(NumericParser<Single>))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(NumericParser<Boolean>))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(StringCollectionParser))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(NumericCollectionParser<Int32>))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(NumericCollectionParser<Single>))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(NumericCollectionParser<Boolean>))
-            {
-                return true;
-            }
-
-            if (memberType == typeof(ColorParser))
-            {
-                return true;
-            }
-
-            return false;
+        /// <summary>
+        /// Returns whether the supplied member can be edited in a value editor
+        /// </summary>
+        protected static Boolean HasValueEditor(Type memberType)
+        {
+            return GetValueEditor(memberType) != null;
         }
 
         public override Single GetWidth()
@@ -419,7 +507,7 @@ namespace KittopiaTech.UI
 
         protected override void OnClose()
         {
-            foreach (KopernicusEditor window in _children.Values)
+            foreach (KopernicusEditor window in Children.Values)
             {
                 window.Close();
             }
