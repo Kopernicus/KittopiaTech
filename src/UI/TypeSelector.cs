@@ -8,7 +8,7 @@ using static KittopiaTech.UI.Framework.Declaration.DialogGUI;
 
 namespace KittopiaTech.UI
 {
-    public class TypeSelector : Window<TypeSelector>
+    public class TypeSelector : Window
     {
         /// <summary>
         /// The type the selectable types extend
@@ -72,6 +72,16 @@ namespace KittopiaTech.UI
         public override Single GetWidth()
         {
             return 400;
+        }
+
+        protected override void OnOpen()
+        {
+            TaskListWindow.Instance.Add(this);
+        }
+
+        protected override void OnClose()
+        {
+            TaskListWindow.Instance.Remove(this);
         }
     }
 }

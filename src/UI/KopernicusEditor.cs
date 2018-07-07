@@ -13,7 +13,7 @@ using Object = System.Object;
 
 namespace KittopiaTech.UI
 {
-    public class KopernicusEditor : Window<KopernicusEditor>
+    public class KopernicusEditor : Window
     {
         /// <summary>
         /// Information about the current state of the editor
@@ -70,7 +70,7 @@ namespace KittopiaTech.UI
         {
             // Skin
             Skin = KittopiaTech.Skin;
-
+            
             // Build a list of parser targets
             GUIScrollList(new Vector2(390, 600), false, true, () =>
             {
@@ -144,7 +144,7 @@ namespace KittopiaTech.UI
                     GUIHorizontalLayout(() =>
                     {
                         // Edit Button
-                        GUIToggleButton(false, "Edit", e => ToggleSubEditor(target, member, e), -1f, 25f,
+                        GUIToggleButton(() => Children.ContainsKey(target.FieldName) && Children[target.FieldName].IsVisible, "Edit", e => ToggleSubEditor(target, member, e), -1f, 25f,
                             Enabled<DialogGUIToggleButton>(() => Tools.GetValue(member, Info.Value) != null));
 
                         // Button to create or destroy the element
@@ -182,7 +182,7 @@ namespace KittopiaTech.UI
                         GUITextInput("", false, Int32.MaxValue, s => Tools.ApplyInput(member, s, Info.Value),
                             () => Tools.FormatParsable(Tools.GetValue(member, Info.Value)) ?? "",
                             TMP_InputField.ContentType.Standard, 25f);
-                        GUIToggleButton(false, ">", e => ToggleValueEditor(target, member, e), 25f, 25f,
+                        GUIToggleButton(() => ValueEditors.ContainsKey(target.FieldName) && ValueEditors[target.FieldName].IsVisible, ">", e => ToggleValueEditor(target, member, e), 25f, 25f,
                             Enabled<DialogGUIToggleButton>(() => HasValueEditor(member)));
                     });
                 }
@@ -217,7 +217,7 @@ namespace KittopiaTech.UI
                     GUIHorizontalLayout(() =>
                     {
                         // Edit Button
-                        GUIToggleButton(false, "Edit", e => ToggleCollectionEditor(target, member, e), -1f, 25f,
+                        GUIToggleButton(() => Children.ContainsKey(target.FieldName) && Children[target.FieldName].IsVisible, "Edit", e => ToggleCollectionEditor(target, member, e), -1f, 25f,
                             Enabled<DialogGUIToggleButton>(() => Tools.GetValue(member, Info.Value) != null));
 
                         // Button to create or destroy the element
@@ -300,7 +300,7 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleSubEditor(ParserTarget target, MemberInfo member, Boolean active)
         {
-            if (Children.ContainsKey(target.FieldName))
+            if (Children.ContainsKey(target.FieldName) && Children[target.FieldName].IsOpen)
             {
                 if (active)
                 {
@@ -309,6 +309,17 @@ namespace KittopiaTech.UI
                 else
                 {
                     Children[target.FieldName].Hide();
+                }
+            }
+            else if (Children.ContainsKey(target.FieldName))
+            {
+                if (active)
+                {
+                    Children[target.FieldName].Open();
+                }
+                else
+                {
+                    Children.Remove(target.FieldName);
                 }
             }
             else
@@ -326,7 +337,7 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleCollectionEditor(ParserTarget target, MemberInfo member, Boolean active)
         {
-            if (Children.ContainsKey(target.FieldName))
+            if (Children.ContainsKey(target.FieldName) && Children[target.FieldName].IsOpen)
             {
                 if (active)
                 {
@@ -335,6 +346,17 @@ namespace KittopiaTech.UI
                 else
                 {
                     Children[target.FieldName].Hide();
+                }
+            }
+            else if (Children.ContainsKey(target.FieldName))
+            {
+                if (active)
+                {
+                    Children[target.FieldName].Open();
+                }
+                else
+                {
+                    Children.Remove(target.FieldName);
                 }
             }
             else
@@ -353,7 +375,7 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleValueEditor(ParserTarget target, MemberInfo member, Boolean active)
         {
-            if (ValueEditors.ContainsKey(target.FieldName))
+            if (ValueEditors.ContainsKey(target.FieldName) && ValueEditors[target.FieldName].IsOpen)
             {
                 if (active)
                 {
@@ -362,6 +384,17 @@ namespace KittopiaTech.UI
                 else
                 {
                     ValueEditors[target.FieldName].Hide();
+                }
+            }
+            else if (ValueEditors.ContainsKey(target.FieldName))
+            {
+                if (active)
+                {
+                    ValueEditors[target.FieldName].Open();
+                }
+                else
+                {
+                    ValueEditors.Remove(target.FieldName);
                 }
             }
             else
@@ -486,31 +519,14 @@ namespace KittopiaTech.UI
             return 400;
         }
 
-#if FALSE // Not sure if this is good or bad
-
-        protected override void OnHide()
+        protected override void OnOpen()
         {
-            foreach (KopernicusEditor window in _children.Values)
-            {
-                window.Hide();
-            }
+            TaskListWindow.Instance.Add(this);
         }
-
-        protected override void OnShow()
-        {
-            foreach (KopernicusEditor window in _children.Values)
-            {
-                window.Show();
-            }
-        }
-#endif
 
         protected override void OnClose()
         {
-            foreach (KopernicusEditor window in Children.Values)
-            {
-                window.Close();
-            }
+            TaskListWindow.Instance.Remove(this);
         }
     }
 }

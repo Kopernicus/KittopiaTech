@@ -8,7 +8,7 @@ namespace KittopiaTech.UI.Framework
     /// <summary>
     /// Base class for the UI namespace
     /// </summary>
-    public abstract class Window<T> where T : class
+    public abstract class Window
     {
         /// <summary>
         /// Whether the window is created
@@ -61,7 +61,7 @@ namespace KittopiaTech.UI.Framework
         // ReSharper disable once StaticMemberInGenericType
         private static readonly Tooltip_Text Prefab = AssetBase.GetPrefab<Tooltip_Text>("Tooltip_Text");
         
-        protected void Integrate(Window<T> other)
+        protected void Integrate(Window other)
         {
             other.BuildDialog();
         }
@@ -81,7 +81,10 @@ namespace KittopiaTech.UI.Framework
             Dialog.SetDraggable(true);
             Dialog.RTrf.anchoredPosition = new Vector2(Position.x, -Position.y);
             Dialog.RTrf.gameObject.AddComponent<ClickThroughBlocker>();
+            OnOpen();
         }
+        
+        protected virtual void OnOpen() {}
 
         /// <summary>
         /// Toggles the visibility of the window

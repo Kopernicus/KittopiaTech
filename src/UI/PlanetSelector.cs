@@ -72,7 +72,7 @@ namespace KittopiaTech.UI
                             ContentSizeFitter.FitMode.PreferredSize, true);
                         foreach (CelestialBody body in PSystemManager.Instance.localBodies)
                         {
-                            GUIToggleButton(false, "", e => TogglePlanetEditor(body, e), () =>
+                            GUIToggleButton(() => ActiveEditors.ContainsKey(body.transform.name) && ActiveEditors[body.transform.name].IsVisible, "", e => TogglePlanetEditor(body, e), () =>
                             {
                                 GUIVerticalLayout(true, false, 2f, new RectOffset(4, 4, 8, 8), TextAnchor.MiddleCenter,
                                     () =>
@@ -93,7 +93,7 @@ namespace KittopiaTech.UI
 
         private void TogglePlanetEditor(CelestialBody body, Boolean active)
         {
-            if (ActiveEditors.ContainsKey(body.transform.name))
+            if (ActiveEditors.ContainsKey(body.transform.name) && ActiveEditors[body.transform.name].IsOpen)
             {
                 if (active)
                 {
@@ -102,6 +102,17 @@ namespace KittopiaTech.UI
                 else
                 {
                     ActiveEditors[body.transform.name].Hide();
+                }
+            }
+            else if (ActiveEditors.ContainsKey(body.transform.name))
+            {
+                if (active)
+                {
+                    ActiveEditors[body.transform.name].Open();
+                }
+                else
+                {
+                    ActiveEditors.Remove(body.transform.name);
                 }
             }
             else

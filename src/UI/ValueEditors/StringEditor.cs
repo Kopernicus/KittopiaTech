@@ -15,7 +15,7 @@ namespace KittopiaTech.UI.ValueEditors
             {
                 SetValue(s);
                 return s;
-            }, () => (String) GetValue(), TMP_InputField.ContentType.Standard, 300f);
+            }, () => (String) GetValue() ?? "", TMP_InputField.ContentType.Standard, 300f);
         }
 
         public override Single GetWidth()

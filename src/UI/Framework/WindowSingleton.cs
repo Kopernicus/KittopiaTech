@@ -4,7 +4,7 @@
     /// Base class for windows that can only have one active instance
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class WindowSingleton<T> : Window<T> where T : class, new()
+    public abstract class WindowSingleton<T> : Window where T : class, new()
     {
         /// <summary>
         /// The internal instance variable

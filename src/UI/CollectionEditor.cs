@@ -156,7 +156,7 @@ namespace KittopiaTech.UI
                         GUIHorizontalLayout(() =>
                         {
                             // Edit Button
-                            GUIToggleButton(false, "Edit",
+                            GUIToggleButton(() => Children.ContainsKey(list[i]) && Children[list[i]].IsVisible, "Edit",
                                 e => ToggleSubEditor(
                                     Collection.NameSignificance == NameSignificance.Type
                                         ? list[i].GetType().Name
@@ -175,7 +175,7 @@ namespace KittopiaTech.UI
                                 },
                                 () => Tools.FormatParsable(list[i]) ?? "",
                                 TMP_InputField.ContentType.Standard, 25f);
-                            GUIToggleButton(false, ">",
+                            GUIToggleButton(() => Children.ContainsKey(list[i]) && Children[list[i]].IsVisible, ">",
                                 e => ToggleValueEditor(genericType, i.ToString(), () => list[i], s =>
                                 {
                                     list[i] = s;
@@ -230,7 +230,7 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleSubEditor(String name, Object value, Boolean active)
         {
-            if (Children.ContainsKey(value))
+            if (Children.ContainsKey(value) && Children[value].IsOpen)
             {
                 if (active)
                 {
@@ -239,6 +239,17 @@ namespace KittopiaTech.UI
                 else
                 {
                     Children[value].Hide();
+                }
+            }
+            else if (Children.ContainsKey(value))
+            {
+                if (active)
+                {
+                    Children[value].Open();
+                }
+                else
+                {
+                    Children.Remove(value);
                 }
             }
             else
@@ -255,7 +266,7 @@ namespace KittopiaTech.UI
         /// </summary>
         private void ToggleValueEditor(Type memberType, String name, Func<Object> getter, Action<Object> setter, Boolean active)
         {
-            if (ValueEditors.ContainsKey(getter()))
+            if (ValueEditors.ContainsKey(getter()) && ValueEditors[getter()].IsOpen)
             {
                 if (active)
                 {
@@ -264,6 +275,17 @@ namespace KittopiaTech.UI
                 else
                 {
                     ValueEditors[getter()].Hide();
+                }
+            }
+            else if (Children.ContainsKey(getter()))
+            {
+                if (active)
+                {
+                    Children[getter()].Open();
+                }
+                else
+                {
+                    Children.Remove(getter());
                 }
             }
             else

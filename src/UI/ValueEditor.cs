@@ -3,7 +3,7 @@ using KittopiaTech.UI.Framework;
 
 namespace KittopiaTech.UI
 {
-    public abstract class ValueEditor : Window<ValueEditor>
+    public abstract class ValueEditor : Window
     {
         /// <summary>
         /// The name of the Window
@@ -40,6 +40,16 @@ namespace KittopiaTech.UI
         public override String GetTitle()
         {
             return "KittopiaTech - " + _name;
+        }
+
+        protected override void OnOpen()
+        {
+            TaskListWindow.Instance.Add(this);
+        }
+
+        protected override void OnClose()
+        {
+            TaskListWindow.Instance.Remove(this);
         }
     }
 }
