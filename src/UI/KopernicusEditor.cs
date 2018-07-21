@@ -134,17 +134,20 @@ namespace KittopiaTech.UI
                 }
 
                 GUISpace(5f);
-                
+
                 // If the element is loaded from a config node, it needs a new window
                 // Simply values can be edited with an inline textfield
                 ConfigType configType =
                     Tools.GetConfigType(Tools.GetValue(member, Info.Value)?.GetType() ?? Tools.MemberType(member));
+
                 if (configType == ConfigType.Node)
                 {
                     GUIHorizontalLayout(() =>
                     {
                         // Edit Button
-                        GUIToggleButton(() => Children.ContainsKey(target.FieldName) && Children[target.FieldName].IsVisible, "Edit", e => ToggleSubEditor(target, member, e), -1f, 25f,
+                        GUIToggleButton(
+                            () => Children.ContainsKey(target.FieldName) && Children[target.FieldName].IsVisible,
+                            "Edit", e => ToggleSubEditor(target, member, e), -1f, 25f,
                             Enabled<DialogGUIToggleButton>(() => Tools.GetValue(member, Info.Value) != null));
 
                         // Button to create or destroy the element
@@ -182,7 +185,10 @@ namespace KittopiaTech.UI
                         GUITextInput("", false, Int32.MaxValue, s => Tools.ApplyInput(member, s, Info.Value),
                             () => Tools.FormatParsable(Tools.GetValue(member, Info.Value)) ?? "",
                             TMP_InputField.ContentType.Standard, 25f);
-                        GUIToggleButton(() => ValueEditors.ContainsKey(target.FieldName) && ValueEditors[target.FieldName].IsVisible, ">", e => ToggleValueEditor(target, member, e), 25f, 25f,
+                        GUIToggleButton(
+                            () => ValueEditors.ContainsKey(target.FieldName) &&
+                                  ValueEditors[target.FieldName].IsVisible, ">",
+                            e => ToggleValueEditor(target, member, e), 25f, 25f,
                             Enabled<DialogGUIToggleButton>(() => HasValueEditor(member)));
                     });
                 }

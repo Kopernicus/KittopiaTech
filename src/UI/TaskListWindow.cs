@@ -72,10 +72,7 @@ namespace KittopiaTech.UI
 
         public void Remove(Window window)
         {
-            Debug.Log(_windows.Count);
             _windows.Remove(window);
-            Debug.Log(_windows.Count);
-            
             Redraw();
         }
     }
