@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Odbc;
 using KittopiaTech.UI.Framework;
 using Kopernicus.Configuration;
+using Kopernicus.OnDemand;
+using KSP.UI.Screens.Settings.Controls;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;
 
@@ -135,6 +139,17 @@ namespace KittopiaTech.UI
             RuntimePreviewGenerator.PreviewDirection = Vector3.forward;
             RuntimePreviewGenerator.Padding = -0.15f;
 
+            ScaledSpaceOnDemand od = body.scaledBody.GetComponent<ScaledSpaceOnDemand>();
+            Boolean isLoaded = true;
+            if (od != null)
+            {
+                isLoaded = od.isLoaded;
+                if (!isLoaded)
+                {
+                    od.LoadTextures();
+                }
+            }
+
             GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             sphere.GetComponentInChildren<MeshFilter>().sharedMesh =
                 body.scaledBody.GetComponent<MeshFilter>().sharedMesh;
@@ -143,6 +158,12 @@ namespace KittopiaTech.UI
 
             Texture2D finalTexture = RuntimePreviewGenerator.GenerateModelPreview(sphere.transform, 256, 256);
             UnityEngine.Object.DestroyImmediate(sphere);
+
+            if (!isLoaded)
+            {
+                od.UnloadTextures();
+            }
+            
             return finalTexture;
         }
     }
