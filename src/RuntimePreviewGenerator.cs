@@ -220,14 +220,14 @@ namespace KittopiaTech
 			if (model == null || model.Equals(null))
 				return null;
 
-            GameObject lightObject = new GameObject();
-            Light light = lightObject.AddOrGetComponent<Light>();
-            lightObject.transform.position = new Vector3(17.2469177246094f, 56.2267150878906f, -36.3499984741211f);
-            lightObject.transform.rotation = new Quaternion(0.1f, 0.1f, -0.7f, -0.7f);
-            light.intensity = 1.5f;
-            light.shadowBias = 0.047f;
-            light.shadows = LightShadows.Soft;
-            light.type = LightType.Directional;
+			GameObject lightObject = new GameObject();
+			Light light = lightObject.AddOrGetComponent<Light>();
+			lightObject.transform.position = new Vector3(17.2469177246094f, 56.2267150878906f, -36.3499984741211f);
+			lightObject.transform.rotation = new Quaternion(0.1f, 0.1f, -0.7f, -0.7f);
+			light.intensity = 1.5f;
+			light.shadowBias = 0.047f;
+			light.shadows = LightShadows.Soft;
+			light.type = LightType.Directional;
 			
 			Texture2D result = null;
 
@@ -289,10 +289,10 @@ namespace KittopiaTech
 				}
 
 				if (!init)
-                {
-                    UnityEngine.Object.DestroyImmediate(lightObject);
+				{
+					UnityEngine.Object.DestroyImmediate(lightObject);
 					return null;
-                }
+				}
 
 				boundsCenter = previewBounds.center;
 				Vector3 boundsExtents = previewBounds.extents;
@@ -409,7 +409,7 @@ namespace KittopiaTech
 					cameraSetup.ApplySetup(renderCamera);
 			}
 
-            UnityEngine.Object.DestroyImmediate(lightObject);
+			UnityEngine.Object.DestroyImmediate(lightObject);
 			return result;
 		}
 
