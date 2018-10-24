@@ -290,7 +290,7 @@ namespace KittopiaTech
 
 				if (!init)
                 {
-                    DestroyImmediate(lightObject);
+                    UnityEngine.Object.DestroyImmediate(lightObject);
 					return null;
                 }
 
@@ -409,7 +409,7 @@ namespace KittopiaTech
 					cameraSetup.ApplySetup(renderCamera);
 			}
 
-            DestroyImmediate(lightObject);
+            UnityEngine.Object.DestroyImmediate(lightObject);
 			return result;
 		}
 
