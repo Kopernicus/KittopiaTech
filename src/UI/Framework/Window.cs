@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Collections;
 using KittopiaTech.UI.Framework.Declaration;
+using Kopernicus;
+using KSP.UI;
 using KSP.UI.TooltipTypes;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using static KittopiaTech.UI.Framework.Declaration.DialogGUI;
 
 namespace KittopiaTech.UI.Framework
 {
@@ -36,6 +42,11 @@ namespace KittopiaTech.UI.Framework
         protected PopupDialog Dialog;
 
         /// <summary>
+        /// Whether the window is currently minimized
+        /// </summary>
+        protected Boolean Minimized;
+
+        /// <summary>
         /// Returns the title of the window
         /// </summary>
         public abstract String GetTitle();
@@ -55,11 +66,34 @@ namespace KittopiaTech.UI.Framework
         /// </summary>
         protected Vector2 Position = new Vector2(400f, 60f);
 
-        /// <summary>
-        /// The base for building tooltip objects
-        /// </summary>
-        // ReSharper disable once StaticMemberInGenericType
-        private static readonly Tooltip_Text Prefab = AssetBase.GetPrefab<Tooltip_Text>("Tooltip_Text");
+        private void BuildDialogWrapped()
+        {
+            GUIVerticalLayout(() =>
+            {
+                GUIHorizontalLayout(false, false, () =>
+                {
+                    GUISpace(5f);
+                    if (!Minimized)
+                    {
+                        GUIButton("-", Minimize, 16f, 16f, false, () => { }, ClearButtonImage());
+                    }
+                    else
+                    {
+                        GUIButton("+", Maximize, 16f, 16f, false, () => { }, ClearButtonImage());
+                    }
+
+                    GUIFlexibleSpace();
+                    GUILabel(GetTitle());
+                    GUIFlexibleSpace();
+                    GUIButton("x", Close, 16f, 16f, false, () => { }, ClearButtonImage());
+                    GUISpace(5f);
+                });
+                if (!Minimized)
+                {
+                    GUIHorizontalLayout(BuildDialog);
+                }
+            });
+        }
         
         protected void Integrate(Window other)
         {
@@ -72,19 +106,21 @@ namespace KittopiaTech.UI.Framework
         public void Open()
         {
             if (IsOpen)
+            {
                 return;
+            }
+            
             IsOpen = IsVisible = true;
             Template = new MultiOptionDialog(GetTitle(), "", GetTitle(), HighLogic.UISkin, GetWidth(),
-                DialogGUI.Declare(BuildDialog));
+                Declare(BuildDialogWrapped));
+            Template.dialogRect.height = 1;
             Dialog = PopupDialog.SpawnPopupDialog(new Vector2(0f, 1f), new Vector2(0f, 1f), Template, true,
                 Skin, false);
-            Dialog.SetDraggable(true);
-            Dialog.RTrf.anchoredPosition = new Vector2(Position.x, -Position.y);
             Dialog.RTrf.gameObject.AddComponent<ClickThroughBlocker>();
+            Dialog.popupWindow.GetChild("Title").SetActive(false);
+            HighLogic.fetch.StartCoroutine(Reposition());
             OnOpen();
         }
-        
-        protected virtual void OnOpen() {}
 
         /// <summary>
         /// Toggles the visibility of the window
@@ -92,9 +128,13 @@ namespace KittopiaTech.UI.Framework
         public void ToggleVisibility()
         {
             if (IsVisible)
+            {
                 Hide();
+            }
             else
+            {
                 Show();
+            }
         }
 
         /// <summary>
@@ -102,43 +142,45 @@ namespace KittopiaTech.UI.Framework
         /// </summary>
         public void Hide()
         {
-            if (IsVisible)
+            if (!IsVisible)
             {
-                Dialog.gameObject.SetActive(IsVisible = false);
-                OnHide();
+                return;
             }
+            
+            Dialog.gameObject.GetComponent<ClickThroughBlocker>().Unlock();
+            Dialog.gameObject.SetActive(IsVisible = false);
+            OnHide();
         }
-        
-        protected virtual void OnHide() {}
 
         /// <summary>
         /// Shows the window
         /// </summary>
         public void Show()
         {
-            if (!IsVisible)
+            if (IsVisible)
             {
-                Dialog.gameObject.SetActive(IsVisible = true);
-                OnShow();
+                return;
             }
+            
+            Dialog.gameObject.SetActive(IsVisible = true);
+            OnShow();
         }
-        
-        protected virtual void OnShow() {}
 
         public void Close()
         {
-            if (IsOpen)
+            if (!IsOpen)
             {
-                Vector2 pos = Dialog.RTrf.anchoredPosition;
-                Position = new Vector2(pos.x, -pos.y);
-                Dialog.Dismiss();
-                UnityEngine.Object.DestroyImmediate(Dialog.popupWindow);
-                IsOpen = IsVisible = false;
-                OnClose();
+                return;
             }
+
+            Dialog.gameObject.GetComponent<ClickThroughBlocker>().Unlock();
+            Vector2 pos = Dialog.RTrf.anchoredPosition;
+            Position = new Vector2(pos.x, -pos.y);
+            Dialog.Dismiss();
+            UnityEngine.Object.DestroyImmediate(Dialog.popupWindow);
+            IsOpen = IsVisible = false;
+            OnClose();
         }
-        
-        protected virtual void OnClose() {}
 
         /// <summary>
         /// Updates the dialog
@@ -146,45 +188,44 @@ namespace KittopiaTech.UI.Framework
         public void Redraw()
         {
             if (!IsOpen)
+            {
                 return;
-            Vector2 pos = Dialog.RTrf.anchoredPosition;
-            Template = new MultiOptionDialog(GetTitle(), "", GetTitle(), HighLogic.UISkin, GetWidth(),
-                DialogGUI.Declare(BuildDialog));
-            Dialog.Dismiss();
-            UnityEngine.Object.Destroy(Dialog.popupWindow);
-            Dialog = PopupDialog.SpawnPopupDialog(new Vector2(0f, 1f), new Vector2(0f, 1f), Template, true,
-                Skin, false);
-            Dialog.SetDraggable(true);
-            Dialog.gameObject.SetActive(IsVisible);
-            Dialog.RTrf.anchoredPosition = pos;
-            Dialog.RTrf.gameObject.AddComponent<ClickThroughBlocker>();
+            }
+            
+            Close();
+            Open();
         }
 
-        /// <summary>
-        /// Adds a tooltip to the UI element
-        /// </summary>
-        protected DialogGUIBase Tooltip(DialogGUIBase dialog, String tip)
+        public void Minimize()
         {
-            dialog.tooltipText = tip;
-            if (dialog.tooltipText != "")
+            if (Minimized)
             {
-                dialog.OnUpdate += () =>
-                {
-                    if (dialog.uiItem == null) return;
-                    TooltipController_Text tt = dialog.uiItem.AddOrGetComponent<TooltipController_Text>();
-                    if (tt == null) return;
-                    tt.textString = tip;
-                    tt.prefab = Prefab;
-                };
+                return;
             }
 
-            return dialog;
+            Minimized = true;
+            Redraw();
         }
 
-        protected DialogGUIBase OnUpdate(DialogGUIBase dialog, Action<DialogGUIBase> callback)
+        public void Maximize()
         {
-            dialog.OnUpdate += () => callback(dialog);
-            return dialog;
+            if (Minimized)
+            {
+                Minimized = false;
+                Redraw();
+            }
+        }
+        
+        protected virtual void OnShow() {}
+        protected virtual void OnHide() {}
+        protected virtual void OnOpen() {}
+        protected virtual void OnClose() {}
+
+        private IEnumerator Reposition()
+        {
+            yield return null;
+            yield return null;
+            Dialog.RTrf.anchoredPosition = new Vector2(Position.x, -Position.y);
         }
     }
 }

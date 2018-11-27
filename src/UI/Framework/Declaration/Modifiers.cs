@@ -114,6 +114,22 @@ namespace KittopiaTech.UI.Framework.Declaration
                 return item;
             };
         }
+
+        public static Modifier<DialogGUIButton> ClearButtonImage()
+        {
+            return item =>
+            {
+                item.OnUpdate += () =>
+                {
+                    Image image = item.uiItem.GetComponent<Image>();
+                    if (image != null)
+                    {
+                        image.color = image.color.A(0f);
+                    }
+                };
+                return item;
+            };
+        }
        
     }
 }

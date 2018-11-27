@@ -15,15 +15,25 @@ namespace KittopiaTech.UI.Framework
                                        UIMasterController.Instance.uiCamera);
             if (inputLocked && !_locked)
             {
-                _locked = true;
-                InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS,
-                    typeof(ClickThroughBlocker).Assembly.FullName);
+                Lock();
             }
             else if (!inputLocked && _locked)
             {
-                _locked = false;
-                InputLockManager.RemoveControlLock(typeof(ClickThroughBlocker).Assembly.FullName);
+                Unlock();
             }
+        }
+
+        public void Lock()
+        {
+            _locked = true;
+            InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS,
+                typeof(ClickThroughBlocker).Assembly.FullName);
+        }
+
+        public void Unlock()
+        {
+            _locked = false;
+            InputLockManager.RemoveControlLock(typeof(ClickThroughBlocker).Assembly.FullName);
         }
     }
 }
