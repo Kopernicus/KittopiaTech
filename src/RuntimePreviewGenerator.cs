@@ -180,13 +180,13 @@ namespace KittopiaTech
 		}
 
 		public static Texture2D GenerateMaterialPreview(Material material, PrimitiveType previewObject, Int32 width = 64,
-			Int32 height = 64)
+		 Int32 height = 64, Vector3 planetRotation = new Vector3(), Vector2 lightDirection = new Vector2(), Color? lightColor = null)
 		{
-			return GenerateMaterialPreviewWithShader(material, previewObject, null, null, width, height);
+			return GenerateMaterialPreviewWithShader(material, previewObject, null, null, width, height, planetRotation, lightDirection, lightColor);
 		}
 
 		public static Texture2D GenerateMaterialPreviewWithShader(Material material, PrimitiveType previewPrimitive,
-			Shader shader, String replacementTag, Int32 width = 64, Int32 height = 64)
+		 Shader shader, String replacementTag, Int32 width = 64, Int32 height = 64, Vector3 planetRotation = new Vector3(), Vector2 lightDirection = new Vector2(), Color? lightColor = null)
 		{
 			GameObject previewModel = GameObject.CreatePrimitive(previewPrimitive);
 			previewModel.gameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -194,7 +194,7 @@ namespace KittopiaTech
 
 			try
 			{
-				return GenerateModelPreviewWithShader(previewModel.transform, shader, replacementTag, width, height, false);
+				return GenerateModelPreviewWithShader(previewModel.transform, shader, replacementTag, width, height, false, planetRotation, lightDirection, lightColor);
 			}
 			catch (Exception e)
 			{
@@ -209,26 +209,30 @@ namespace KittopiaTech
 		}
 
 		public static Texture2D GenerateModelPreview(Transform model, Int32 width = 64, Int32 height = 64,
-			Boolean shouldCloneModel = false)
+		 Boolean shouldCloneModel = false, Vector3 planetRotation = new Vector3(), Vector2 lightDirection = new Vector2(), Color? lightColor = null)
 		{
-			return GenerateModelPreviewWithShader(model, null, null, width, height, shouldCloneModel);
+			return GenerateModelPreviewWithShader(model, null, null, width, height, shouldCloneModel, planetRotation, lightDirection, lightColor);
 		}
 
 		public static Texture2D GenerateModelPreviewWithShader(Transform model, Shader shader, String replacementTag,
-			Int32 width = 64, Int32 height = 64, Boolean shouldCloneModel = false)
+		 Int32 width = 64, Int32 height = 64, Boolean shouldCloneModel = false, Vector3 planetRotation = new Vector3(), Vector2 lightDirection = new Vector2(), Color? lightColor = null)
 		{
 			if (model == null || model.Equals(null))
 				return null;
 
 			GameObject lightObject = new GameObject();
 			Light light = lightObject.AddOrGetComponent<Light>();
-			lightObject.transform.position = new Vector3(17.2469177246094f, 56.2267150878906f, -36.3499984741211f);
-			lightObject.transform.rotation = new Quaternion(0.1f, 0.1f, -0.7f, -0.7f);
+			lightObject.transform.position = model.position + new Vector3(0, 0, -36);
 			light.intensity = 1.5f;
 			light.shadowBias = 0.047f;
 			light.shadows = LightShadows.Soft;
 			light.type = LightType.Directional;
-			
+
+			light.color = lightColor ?? Color.white;
+			lightObject.transform.RotateAround(model.position, Vector3.right, lightDirection.x);
+			lightObject.transform.RotateAround(model.position, Vector3.down, lightDirection.y);
+			lightObject.transform.rotation = Quaternion.LookRotation(model.position - lightObject.transform.position, lightObject.transform.up);
+
 			Texture2D result = null;
 
 			if (!model.gameObject.scene.IsValid() || !model.gameObject.scene.isLoaded)
@@ -290,17 +294,20 @@ namespace KittopiaTech
 
 				if (!init)
 				{
-					UnityEngine.Object.DestroyImmediate(lightObject);
+					Object.DestroyImmediate(lightObject);
 					return null;
 				}
 
 				boundsCenter = previewBounds.center;
 				Vector3 boundsExtents = previewBounds.extents;
 				Vector3 boundsSize = 2f * boundsExtents;
+				Vector3 up = previewObject.up;
 
-				aspect = (Single) width / height;
+				previewObject.eulerAngles = previewObject.eulerAngles + planetRotation;
+
+				aspect = (Single)width / height;
 				renderCamera.aspect = aspect;
-				renderCamera.transform.rotation = Quaternion.LookRotation(previewDir, previewObject.up);
+				renderCamera.transform.rotation = Quaternion.LookRotation(previewDir, up);
 
 				Single distance;
 				if (m_orthographicMode)
