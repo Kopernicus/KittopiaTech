@@ -19,8 +19,9 @@ namespace KittopiaTech.UI.ValueEditors
             Object value = GetValue();
             Type enumParser = value.GetType();
             Type enumType = enumParser.GetGenericArguments()[0];
+            Int32 count = Enum.GetNames(enumType).Length;
 
-            GUIScrollList(new Vector2(390, 400), false, true, () =>
+            GUIScrollList(new Vector2(390, Math.Min(count * 25f + 20f, 400)), false, true, () =>
             {
                 GUIVerticalLayout(true, false, 2f, new RectOffset(8, 26, 8, 8), TextAnchor.UpperLeft, () =>
                 {
