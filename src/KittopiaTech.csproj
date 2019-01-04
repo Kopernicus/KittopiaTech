@@ -102,6 +102,7 @@
     <Compile Include="UI\ValueEditors\BooleanEditor.cs" />
     <Compile Include="UI\ValueEditors\ColorEditor.cs" />
     <Compile Include="UI\ValueEditors\DoubleEditor.cs" />
+    <Compile Include="UI\ValueEditors\EnumEditor.cs" />
     <Compile Include="UI\ValueEditors\IntegerEditor.cs" />
     <Compile Include="UI\ValueEditors\NumericCollectionEditor.cs" />
     <Compile Include="UI\ValueEditors\SingleEditor.cs" />

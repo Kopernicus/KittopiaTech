@@ -490,6 +490,11 @@ namespace KittopiaTech.UI
                 return typeof(Vector2Editor);
             }
 
+            if (memberType.IsGenericType && memberType.GetGenericTypeDefinition() == typeof(EnumParser<>))
+            {
+                return typeof(EnumEditor);
+            }
+
             return null;
         }
 

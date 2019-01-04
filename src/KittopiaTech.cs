@@ -15,7 +15,6 @@ namespace KittopiaTech
         /// </summary>
         public static UISkinDef Skin { get; set; }
         
-        
         void Start()
         {
             // Stop the Garbage Collector
