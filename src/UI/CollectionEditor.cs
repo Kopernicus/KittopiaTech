@@ -52,12 +52,12 @@ namespace KittopiaTech.UI
                     GUIContentSizer(ContentSizeFitter.FitMode.Unconstrained,
                         ContentSizeFitter.FitMode.PreferredSize, true);
 
-                    DisplayCollection();
-
                     // Use a box as a seperator
                     GUISpace(5f);
                     GUIBox(-1f, 1f, () => { });
                     GUISpace(5f);
+                    
+                    DisplayCollection();
                 });
             });
         }
@@ -74,11 +74,6 @@ namespace KittopiaTech.UI
                 {
                     Int32 i = j;
 
-                    // Use a box as a seperator
-                    GUISpace(5f);
-                    GUIBox(-1f, 1f, () => { });
-                    GUISpace(5f);
-
                     // Add / Remove Buttons
                     GUIHorizontalLayout(() =>
                     {
@@ -86,9 +81,17 @@ namespace KittopiaTech.UI
                         {
                             GUILabel(list[i].GetType().Name, modifier: Alignment(TextAlignmentOptions.Left));
                         }
+                        else if (Collection.NameSignificance == NameSignificance.Key)
+                        {
+                            GUILabel(Collection.Key, modifier: Alignment(TextAlignmentOptions.Left));
+                        }
                         else if (typeof(IPatchable).IsAssignableFrom(genericType))
                         {
                             GUILabel(((IPatchable) list[i]).name, modifier: Alignment(TextAlignmentOptions.Left));
+                        }
+                        else
+                        {
+                            GUILabel(i + 1 + ".", modifier: Alignment(TextAlignmentOptions.Left));
                         }
 
                         GUIFlexibleSpace();
@@ -160,7 +163,7 @@ namespace KittopiaTech.UI
                                 e => ToggleSubEditor(
                                     Collection.NameSignificance == NameSignificance.Type
                                         ? list[i].GetType().Name
-                                        : i.ToString(), list[i], e), -1f, 25f);
+                                        : (i + 1).ToString(), list[i], e), -1f, 25f);
                         });
                     }
                     else
@@ -185,15 +188,15 @@ namespace KittopiaTech.UI
                                 Enabled<DialogGUIToggleButton>(() => true));
                         });
                     }
-                }
 
-                if (list.Count == 0)
-                {
                     // Use a box as a seperator
                     GUISpace(5f);
                     GUIBox(-1f, 1f, () => { });
                     GUISpace(5f);
-                    
+                }
+
+                if (list.Count == 0)
+                {
                     // Add / Remove Buttons
                     GUIHorizontalLayout(true, false, () =>
                     {
@@ -221,6 +224,11 @@ namespace KittopiaTech.UI
                             }
                         }, 25f, 25f, false, () => { }, Enabled<DialogGUIButton>(() => active));
                     });
+                    
+                    // Use a box as a seperator
+                    GUISpace(5f);
+                    GUIBox(-1f, 1f, () => { });
+                    GUISpace(5f);
                 }
             }
         }

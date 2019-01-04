@@ -263,10 +263,13 @@ namespace KittopiaTech.UI
                 }
             }
 
-            // Use a box as a seperator
-            GUISpace(5f);
-            GUIBox(-1f, 1f, () => { });
-            GUISpace(5f);
+            if (target.FieldName != "self")
+            {
+                // Use a box as a seperator
+                GUISpace(5f);
+                GUIBox(-1f, 1f, () => { });
+                GUISpace(5f);
+            }
         }
 
         /// <summary>
