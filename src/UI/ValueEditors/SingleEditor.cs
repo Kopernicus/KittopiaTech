@@ -13,29 +13,31 @@ namespace KittopiaTech.UI.ValueEditors
             // Skin
             Skin = KittopiaTech.Skin;
 
-            GUISpace(5f);
-
-            GUIHorizontalLayout(() =>
+            GUIVerticalLayout(() =>
             {
-                // Decrement Button
-                GUIButton("<",
-                    () => SetValue((NumericParser<Single>) Math.Max(Single.MinValue + 1,
-                        (NumericParser<Single>) GetValue() - 1)),
-                    25f, 25f, false, () => { });
+                GUISpace(5f);
+                GUIHorizontalLayout(() =>
+                {
+                    // Decrement Button
+                    GUIButton("<",
+                        () => SetValue((NumericParser<Single>) Math.Max(Single.MinValue + 1,
+                            (NumericParser<Single>) GetValue() - 1)),
+                        25f, 25f, false, () => { });
 
-                // Text Edit
-                GUITextInput("", false, Int32.MaxValue, s =>
-                    {
-                        SetValue(Tools.SetValueFromString(typeof(NumericParser<Single>), GetValue(), s));
-                        return s;
-                    }, () => Tools.FormatParsable(GetValue()), TMP_InputField.ContentType.IntegerNumber,
-                    25f);
+                    // Text Edit
+                    GUITextInput("", false, Int32.MaxValue, s =>
+                        {
+                            SetValue(Tools.SetValueFromString(typeof(NumericParser<Single>), GetValue(), s));
+                            return s;
+                        }, () => Tools.FormatParsable(GetValue()), TMP_InputField.ContentType.IntegerNumber,
+                        25f);
 
-                // Increment Button
-                GUIButton(">",
-                    () => SetValue((NumericParser<Single>) Math.Min(Single.MaxValue - 1,
-                        (NumericParser<Single>) GetValue() + 1)),
-                    25f, 25f, false, () => { });
+                    // Increment Button
+                    GUIButton(">",
+                        () => SetValue((NumericParser<Single>) Math.Min(Single.MaxValue - 1,
+                            (NumericParser<Single>) GetValue() + 1)),
+                        25f, 25f, false, () => { });
+                });
             });
         }
 

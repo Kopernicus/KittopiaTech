@@ -14,42 +14,45 @@ namespace KittopiaTech.UI.ValueEditors
             // Skin
             Skin = KittopiaTech.Skin;
 
-            NumericParser<Single> x = 0;
-            NumericParser<Single> y = 0;
-            NumericParser<Single> z = 0;
+            GUIVerticalLayout(() =>
+            {
+                NumericParser<Single> x = 0;
+                NumericParser<Single> y = 0;
+                NumericParser<Single> z = 0;
 
-            // X
-            Integrate(new SingleEditor("", () => Reference, () =>
-            {
-                Vector3Parser parser = (Vector3Parser) GetValue();
-                return x = parser.Value.x;
-            }, v =>
-            {
-                x = (NumericParser<Single>) v;
-                SetValue((Vector3Parser) new Vector3(x, y, z));
-            }));
-            
-            // Y
-            Integrate(new SingleEditor("", () => Reference, () =>
-            {
-                Vector3Parser parser = (Vector3Parser) GetValue();
-                return y = parser.Value.y;
-            }, v =>
-            {
-                y = (NumericParser<Single>) v;
-                SetValue((Vector3Parser) new Vector3(x, y, z));
-            }));
-            
-            // Z
-            Integrate(new SingleEditor("", () => Reference, () =>
-            {
-                Vector3Parser parser = (Vector3Parser) GetValue();
-                return z = parser.Value.z;
-            }, v =>
-            {
-                z = (NumericParser<Single>) v;
-                SetValue((Vector3Parser) new Vector3(x, y, z));
-            }));
+                // X
+                Integrate(new SingleEditor("", () => Reference, () =>
+                {
+                    Vector3Parser parser = (Vector3Parser) GetValue();
+                    return x = parser.Value.x;
+                }, v =>
+                {
+                    x = (NumericParser<Single>) v;
+                    SetValue((Vector3Parser) new Vector3(x, y, z));
+                }));
+
+                // Y
+                Integrate(new SingleEditor("", () => Reference, () =>
+                {
+                    Vector3Parser parser = (Vector3Parser) GetValue();
+                    return y = parser.Value.y;
+                }, v =>
+                {
+                    y = (NumericParser<Single>) v;
+                    SetValue((Vector3Parser) new Vector3(x, y, z));
+                }));
+
+                // Z
+                Integrate(new SingleEditor("", () => Reference, () =>
+                {
+                    Vector3Parser parser = (Vector3Parser) GetValue();
+                    return z = parser.Value.z;
+                }, v =>
+                {
+                    z = (NumericParser<Single>) v;
+                    SetValue((Vector3Parser) new Vector3(x, y, z));
+                }));
+            });
         }
 
         public override Single GetWidth()

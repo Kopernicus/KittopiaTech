@@ -14,30 +14,33 @@ namespace KittopiaTech.UI.ValueEditors
             // Skin
             Skin = KittopiaTech.Skin;
 
-            NumericParser<Single> x = 0;
-            NumericParser<Single> y = 0;
+            GUIVerticalLayout(() =>
+            {
+                NumericParser<Single> x = 0;
+                NumericParser<Single> y = 0;
 
-            // X
-            Integrate(new SingleEditor("", () => Reference, () =>
-            {
-                Vector2Parser parser = (Vector2Parser) GetValue();
-                return x = parser.Value.x;
-            }, v =>
-            {
-                x = (NumericParser<Single>) v;
-                SetValue((Vector2Parser) new Vector2(x, y));
-            }));
-            
-            // Y
-            Integrate(new SingleEditor("", () => Reference, () =>
-            {
-                Vector2Parser parser = (Vector2Parser) GetValue();
-                return y = parser.Value.y;
-            }, v =>
-            {
-                y = (NumericParser<Single>) v;
-                SetValue((Vector2Parser) new Vector2(x, y));
-            }));
+                // X
+                Integrate(new SingleEditor("", () => Reference, () =>
+                {
+                    Vector2Parser parser = (Vector2Parser) GetValue();
+                    return x = parser.Value.x;
+                }, v =>
+                {
+                    x = (NumericParser<Single>) v;
+                    SetValue((Vector2Parser) new Vector2(x, y));
+                }));
+
+                // Y
+                Integrate(new SingleEditor("", () => Reference, () =>
+                {
+                    Vector2Parser parser = (Vector2Parser) GetValue();
+                    return y = parser.Value.y;
+                }, v =>
+                {
+                    y = (NumericParser<Single>) v;
+                    SetValue((Vector2Parser) new Vector2(x, y));
+                }));
+            });
         }
 
         public override Single GetWidth()
