@@ -39,20 +39,6 @@ namespace KittopiaTech
                     PlanetSelector.Instance.ToggleVisibility();
                 }
             }
-            
-            // Check if the user wants to open the task list
-            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.T))
-            {
-                // Open or close the main window
-                if (!TaskListWindow.Instance.IsOpen)
-                {
-                    TaskListWindow.Instance.Open();
-                }
-                else
-                {
-                    TaskListWindow.Instance.ToggleVisibility();
-                }
-            }
         }
 
         void OnGUI()

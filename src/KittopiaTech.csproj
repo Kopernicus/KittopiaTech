@@ -96,7 +96,6 @@
     <Compile Include="UI\KopernicusEditor.cs" />
     <Compile Include="UI\CollectionEditor.cs" />
     <Compile Include="UI\PlanetSelector.cs" />
-    <Compile Include="UI\TaskListWindow.cs" />
     <Compile Include="UI\TypeSelector.cs" />
     <Compile Include="UI\ValueEditor.cs" />
     <Compile Include="UI\ValueEditors\BooleanEditor.cs" />

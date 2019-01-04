@@ -41,15 +41,5 @@ namespace KittopiaTech.UI
         {
             return "KittopiaTech - " + _name;
         }
-
-        protected override void OnOpen()
-        {
-            TaskListWindow.Instance.Add(this);
-        }
-
-        protected override void OnClose()
-        {
-            TaskListWindow.Instance.Remove(this);
-        }
     }
 }
