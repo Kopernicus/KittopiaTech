@@ -1,5 +1,5 @@
 ﻿using System;
-using Kopernicus;
+using Kopernicus.ConfigParser.BuiltinTypeParsers;
 using UnityEngine;
 using UnityEngine.UI;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;

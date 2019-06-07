@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using Kopernicus;
+using Kopernicus.ConfigParser.BuiltinTypeParsers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

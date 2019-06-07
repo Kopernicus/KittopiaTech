@@ -416,7 +416,7 @@ namespace KittopiaTech
 					cameraSetup.ApplySetup(renderCamera);
 			}
 
-			UnityEngine.Object.DestroyImmediate(lightObject);
+			Object.DestroyImmediate(lightObject);
 			return result;
 		}
 

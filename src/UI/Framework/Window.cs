@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections;
-using KittopiaTech.UI.Framework.Declaration;
-using Kopernicus;
-using KSP.UI;
-using KSP.UI.TooltipTypes;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;
+using Object = UnityEngine.Object;
 
 namespace KittopiaTech.UI.Framework
 {
@@ -177,7 +172,7 @@ namespace KittopiaTech.UI.Framework
             Vector2 pos = Dialog.RTrf.anchoredPosition;
             Position = new Vector2(pos.x, -pos.y);
             Dialog.Dismiss();
-            UnityEngine.Object.DestroyImmediate(Dialog.popupWindow);
+            Object.DestroyImmediate(Dialog.popupWindow);
             IsOpen = IsVisible = false;
             OnClose();
         }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using KittopiaTech.UI.Framework;
 using KittopiaTech.UI.ValueEditors;
-using Kopernicus;
+using Kopernicus.ConfigParser.Attributes;
+using Kopernicus.ConfigParser.BuiltinTypeParsers;
+using Kopernicus.ConfigParser.Enumerations;
 using Kopernicus.UI;
 using TMPro;
 using UnityEngine;
@@ -107,7 +109,7 @@ namespace KittopiaTech.UI
         {
             // Don't display hidden options
             if (Tools.HasAttribute<KittopiaHideOption>(member) &&
-                !Tools.GetAttributes<KittopiaHideOption>(member)[0].show)
+                !Tools.GetAttributes<KittopiaHideOption>(member)[0].Show)
             {
                 return;
             }
@@ -290,7 +292,7 @@ namespace KittopiaTech.UI
                 () =>
                 {
                     Boolean active = true;
-                    GUIButton(action.name, () =>
+                    GUIButton(action.Name, () =>
                         {
                             active = false;
                             Tools.InvokeKittopiaAction(info, Info.Value, () => active = true);

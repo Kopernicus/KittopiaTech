@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using KittopiaTech.UI.Framework;
-using Kopernicus;
+using Kopernicus.ConfigParser;
 using UnityEngine;
 using UnityEngine.UI;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;

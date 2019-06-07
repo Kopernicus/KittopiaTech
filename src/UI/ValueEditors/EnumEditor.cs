@@ -1,6 +1,5 @@
 ﻿using System;
-using Kopernicus;
-using TMPro;
+using Kopernicus.ConfigParser.Interfaces;
 using UnityEngine;
 using UnityEngine.UI;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;

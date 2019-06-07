@@ -1,8 +1,5 @@
 ﻿using System;
-using Kopernicus;
-using TMPro;
-using UnityEngine;
-using Object = System.Object;
+using Kopernicus.ConfigParser.BuiltinTypeParsers;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;
 
 namespace KittopiaTech.UI.ValueEditors

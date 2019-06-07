@@ -1,5 +1,5 @@
 ﻿using System;
-using Kopernicus;
+using Kopernicus.ConfigParser.BuiltinTypeParsers;
 using Kopernicus.UI;
 using TMPro;
 using static KittopiaTech.UI.Framework.Declaration.DialogGUI;

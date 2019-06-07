@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Reflection;
-using Kopernicus;
+using Kopernicus.ConfigParser.Attributes;
+using Kopernicus.ConfigParser.Enumerations;
+using Kopernicus.ConfigParser.Interfaces;
 using Kopernicus.UI;
 using TMPro;
 using UnityEngine;
