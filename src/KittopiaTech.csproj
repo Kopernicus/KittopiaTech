@@ -36,12 +36,16 @@
       <HintPath>..\packages\Assembly-CSharp.1.7.3\lib\net35\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Assembly-CSharp-firstpass.1.7.3\lib\net35\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Kopernicus, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Kopernicus.1.7.3.1\lib\net35\Kopernicus.dll</HintPath>
+      <HintPath>..\packages\Kopernicus.1.7.3.2\lib\net35\Kopernicus.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Kopernicus.Parser, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Kopernicus.Parser.1.7.3.1\lib\net35\Kopernicus.Parser.dll</HintPath>
+      <HintPath>..\packages\Kopernicus.Parser.1.7.3.2\lib\net35\Kopernicus.Parser.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ModularFlightIntegrator, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
