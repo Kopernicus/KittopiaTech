@@ -51,6 +51,8 @@ namespace KittopiaTech.UI
         /// </summary>
         public void Init()
         {
+            Bodies.Clear();
+            Thumbnails.Clear();
             foreach (CelestialBody body in PSystemManager.Instance.localBodies)
             {
                 Thumbnails.Add(body.transform.name, GetPlanetThumbnail(body));
