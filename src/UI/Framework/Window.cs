@@ -141,6 +141,13 @@ namespace KittopiaTech.UI.Framework
             {
                 return;
             }
+
+            if (!Dialog || !Dialog.gameObject)
+            {
+                IsOpen = IsVisible = false;
+                OnReset();
+                return;
+            }
             
             Dialog.gameObject.GetComponent<ClickThroughBlocker>().Unlock();
             Dialog.gameObject.SetActive(IsVisible = false);
@@ -156,6 +163,13 @@ namespace KittopiaTech.UI.Framework
             {
                 return;
             }
+
+            if (!Dialog || !Dialog.gameObject)
+            {
+                IsOpen = IsVisible = false;
+                OnReset();
+                return;
+            }
             
             Dialog.gameObject.SetActive(IsVisible = true);
             OnShow();
@@ -165,6 +179,13 @@ namespace KittopiaTech.UI.Framework
         {
             if (!IsOpen)
             {
+                return;
+            }
+
+            if (!Dialog || !Dialog.gameObject)
+            {
+                IsOpen = IsVisible = false;
+                OnReset();
                 return;
             }
 
@@ -186,6 +207,13 @@ namespace KittopiaTech.UI.Framework
             {
                 return;
             }
+
+            if (!Dialog || !Dialog.gameObject)
+            {
+                IsOpen = IsVisible = false;
+                OnReset();
+                return;
+            }
             
             Close();
             Open();
@@ -198,23 +226,40 @@ namespace KittopiaTech.UI.Framework
                 return;
             }
 
+            if (!Dialog || !Dialog.gameObject)
+            {
+                IsOpen = IsVisible = false;
+                OnReset();
+                return;
+            }
+
             Minimized = true;
             Redraw();
         }
 
         public void Maximize()
         {
-            if (Minimized)
+            if (!Minimized)
             {
-                Minimized = false;
-                Redraw();
+                return;
             }
+
+            if (!Dialog || !Dialog.gameObject)
+            {
+                IsOpen = IsVisible = false;
+                OnReset();
+                return;
+            }
+
+            Minimized = false;
+            Redraw();
         }
         
         protected virtual void OnShow() {}
         protected virtual void OnHide() {}
         protected virtual void OnOpen() {}
         protected virtual void OnClose() {}
+        protected virtual void OnReset() {}
 
         private IEnumerator Reposition()
         {

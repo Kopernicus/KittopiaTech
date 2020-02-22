@@ -63,6 +63,12 @@ namespace KittopiaTech.UI
             ValueEditors = new Dictionary<Object, ValueEditor>();
         }
 
+        protected override void OnReset()
+        {
+            Children.Clear();
+            ValueEditors.Clear();
+        }
+
         public override String GetTitle()
         {
             return "KittopiaTech - " + _name;

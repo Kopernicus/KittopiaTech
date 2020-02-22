@@ -60,6 +60,11 @@ namespace KittopiaTech.UI
             }
         }
 
+        protected override void OnReset()
+        {
+            ActiveEditors.Clear();
+        }
+
         protected override void BuildDialog()
         {
             // Skin
