@@ -19,6 +19,9 @@ namespace KittopiaTech
         {
             // Stop the Garbage Collector
             DontDestroyOnLoad(this);
+
+            // Init the UI
+            PlanetSelector.Instance.Init();
         }
 
         void Update()
@@ -29,8 +32,6 @@ namespace KittopiaTech
                 // Open or close the main window
                 if (!PlanetSelector.Instance.IsOpen)
                 {
-                    // Init the UI
-                    PlanetSelector.Instance.Init();
                     PlanetSelector.Instance.Open();
                 }
                 else
