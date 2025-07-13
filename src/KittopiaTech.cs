@@ -27,7 +27,7 @@ namespace KittopiaTech
         void Update()
         {
             // Check if the user wants to open the UI
-            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.P))
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.LeftAlt)) && Input.GetKeyDown(KeyCode.K) || (Input.GetKey(KeyCode.LeftControl) && (Input.GetKey(KeyCode.P)))
             {
                 // Open or close the main window
                 if (!PlanetSelector.Instance.IsOpen)
