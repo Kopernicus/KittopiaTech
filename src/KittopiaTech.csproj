@@ -1,123 +1,46 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C9E33DC8-5168-4474-A4CD-7ABCF431C773}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>KittopiaTech</RootNamespace>
     <AssemblyName>KittopiaTech</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFramework>net472</TargetFramework>
     <FileAlignment>512</FileAlignment>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\build\</OutputPath>
+    <KSPBT_CopyDLLsToPluginFolder>false</KSPBT_CopyDLLsToPluginFolder>
+    <KSPBT_GenerateAssemblyAttribute>false</KSPBT_GenerateAssemblyAttribute>
+    <KSPBT_GenerateDependencyAttributes>false</KSPBT_GenerateDependencyAttributes>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\build\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>x64</PlatformTarget>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\build\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <ModReference Include="Kopernicus">
+      <DLLPath>GameData/Kopernicus/Plugins/Kopernicus.dll</DLLPath>
+      <CKANIdentifier>Kopernicus</CKANIdentifier>
+    </ModReference>
+    <ModReference Include="Kopernicus.Parser">
+      <DLLPath>GameData/Kopernicus/Plugins/Kopernicus.Parser.dll</DLLPath>
+    </ModReference>
+    <ModReference Include="ModularFlightIntegrator">
+      <DLLPath>GameData/ModularFlightIntegrator/ModularFlightIntegrator.dll</DLLPath>
+      <CKANIdentifier>ModularFlightIntegrator</CKANIdentifier>
+    </ModReference>
   </ItemGroup>
-    <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="Kopernicus">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\Kopernicus\Plugins\Kopernicus.dll</HintPath>
-    </Reference>
-    <Reference Include="Kopernicus.Parser">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\Kopernicus\Plugins\Kopernicus.Parser.dll</HintPath>
-    </Reference>
-    <Reference Include="ModularFlightIntegrator">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\ModularFlightIntegrator\ModularFlightIntegrator.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.UIModule.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="KittopiaTech.cs" />
-    <Compile Include="RuntimePreviewGenerator.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\Framework\ClickThroughBlocker.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIBox.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIButton.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUI.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIGridLayout.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIHorizontalLayout.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIImage.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUILabel.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIScrollList.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUISlider.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUISpace.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUITextInput.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIToggle.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIToggleButton.cs" />
-    <Compile Include="UI\Framework\Declaration\DialogGUIVerticalLayout.cs" />
-    <Compile Include="UI\Framework\Declaration\Modifiers.cs" />
-    <Compile Include="UI\Framework\FixScrollRect.cs" />
-    <Compile Include="UI\Framework\StyleConverter.cs" />
-    <Compile Include="UI\Framework\Window.cs" />
-    <Compile Include="UI\Framework\WindowSingleton.cs" />
-    <Compile Include="UI\KopernicusEditor.cs" />
-    <Compile Include="UI\CollectionEditor.cs" />
-    <Compile Include="UI\PlanetSelector.cs" />
-    <Compile Include="UI\TypeSelector.cs" />
-    <Compile Include="UI\ValueEditor.cs" />
-    <Compile Include="UI\ValueEditors\BooleanEditor.cs" />
-    <Compile Include="UI\ValueEditors\ColorEditor.cs" />
-    <Compile Include="UI\ValueEditors\DoubleEditor.cs" />
-    <Compile Include="UI\ValueEditors\EnumEditor.cs" />
-    <Compile Include="UI\ValueEditors\IntegerEditor.cs" />
-    <Compile Include="UI\ValueEditors\NumericCollectionEditor.cs" />
-    <Compile Include="UI\ValueEditors\SingleEditor.cs" />
-    <Compile Include="UI\ValueEditors\StringCollectionEditor.cs" />
-    <Compile Include="UI\ValueEditors\StringEditor.cs" />
-    <Compile Include="UI\ValueEditors\Vector2Editor.cs" />
-    <Compile Include="UI\ValueEditors\Vector3DEditor.cs" />
-    <Compile Include="UI\ValueEditors\Vector3Editor.cs" />
+    <PackageReference Include="KSPBuildTools" Version="1.1.1" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
