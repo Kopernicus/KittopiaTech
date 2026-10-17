@@ -149,6 +149,7 @@ public static partial class DebugSkin
         Object.DestroyImmediate(go.GetComponent<DebugScreen>());
         Object.DestroyImmediate(go.GetComponent<AddDebugScreens>());
         Object.DestroyImmediate(go.GetComponent<UIWindowArea>());
+        WindowDragArea.ReplaceAll(go);
 
         var titleBar = go.transform.Find("VerticalLayout/TitleBar");
         var toggleButton = titleBar.Find("ToggleContentsButton");
