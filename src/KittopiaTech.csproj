@@ -14,6 +14,12 @@
   <ItemGroup>
     <PackageReference Include="KSPBuildTools" Version="1.1.1" />
     <PackageReference Include="JsonPoke" Version="1.2.0" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <Publicize Include="Assembly-CSharp:KSP.UI.Screens.DebugToolbar.DebugScreenSpawner.debugScreens" />
 
     <Reference Include="Kopernicus">
       <HintPath>$(DepSet1)/Kopernicus/Plugins/Kopernicus.dll</HintPath>
