@@ -21,6 +21,13 @@ unloaded. Previews show a texture's colour without its alpha, since alpha often 
 something else, like gloss. This needs KittopiaTech's shader bundle, which is only built for
 Windows so far; elsewhere, previews show alpha as transparency.
 
+Curves show a small graph; click its button for a larger one. Drag keys on the graph to
+move them, and double-click empty space to add a key. Under the graph, the selected key's
+time and value can be typed, and its tangent mode picked: Auto writes no tangents and lets
+KSP choose them, Smooth and Linear follow the neighbouring keys as they move, Flat is level,
+and Free keeps tangents as typed. The table below lists every key for exact numbers; typing
+a tangent makes that key Free.
+
 Each material (the scaled and PQS surface materials, ocean and scatter materials) has a
 Shader properties section listing every property of its shader by its raw name, e.g.
 `_MainTex`, including those with no named field. Hover a property for the shader's
