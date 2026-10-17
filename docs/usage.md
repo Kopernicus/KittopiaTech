@@ -14,7 +14,8 @@ any (see [Extending KittopiaTech](extending.md#field-docs)).
 Clicking a texture or map path opens a searchable list of textures in GameData, in
 KSPTextureLoader asset bundles, and built into the game (`BUILTIN/`), starting from the
 current value. Click an entry to preview it; double-click or press Select to use it, or
-press Enter to use what you typed. Clicking a map's thumbnail opens a larger preview.
+press Enter to use what you typed. Clicking a texture or map thumbnail opens a larger
+preview.
 
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for

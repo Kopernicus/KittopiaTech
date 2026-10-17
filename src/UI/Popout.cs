@@ -1,3 +1,4 @@
+using System;
 using KittopiaTech.UI.Debug;
 using UnityEngine;
 
@@ -12,6 +13,9 @@ public sealed class Popout : MonoBehaviour
     Component owner;
 
     public Transform Content { get; private set; }
+
+    /// <summary>Raised when the pop-out is destroyed, however it was closed.</summary>
+    public event Action Closed;
 
     public static Popout Open(Component owner, string title, Vector2 size)
     {
@@ -41,6 +45,8 @@ public sealed class Popout : MonoBehaviour
         if (this != null)
             Destroy(gameObject);
     }
+
+    void OnDestroy() => Closed?.Invoke();
 
     void Update()
     {
