@@ -104,13 +104,12 @@ public sealed class AssetPicker : MonoBehaviour
 
         if (builtinTextures)
         {
-            var builtin = Resources
-                .FindObjectsOfTypeAll<Texture2D>()
-                .Select(t => t.name)
-                .Where(n => !string.IsNullOrEmpty(n))
-                .Distinct()
-                .Select(n => "BUILTIN/" + n);
-            paths = paths.Concat(builtin);
+            // GameDatabase textures are files in GameData, already listed by path.
+            var database = new HashSet<string>(
+                GameDatabase.Instance.databaseTexture.Select(t => t.name),
+                StringComparer.OrdinalIgnoreCase
+            );
+            paths = paths.Concat(BuiltinTextures.Names.Where(n => !database.Contains(n)).Select(n => "BUILTIN/" + n));
         }
 
         var index = paths.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToArray();

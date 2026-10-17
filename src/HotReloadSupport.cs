@@ -29,6 +29,11 @@ internal static class HotReloadSupport
     static void OnHotLoad(Assembly oldAssembly)
     {
         var windows = CaptureWindows(oldAssembly);
+
+        // Recorded once while loading; the new assembly can't record it again.
+        var builtin = oldAssembly?.GetType(typeof(BuiltinTextures).FullName)?.GetProperty(nameof(BuiltinTextures.Names));
+        if (builtin?.GetValue(null, null) is string[] names)
+            BuiltinTextures.Names = names;
         DestroyOldObjects();
 
         if (!DebugSkin.Initialize())
