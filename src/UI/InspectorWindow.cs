@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using KittopiaTech.Model;
 using KittopiaTech.UI.Debug;
+using KittopiaTech.UI.Inspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -115,9 +117,11 @@ public class InspectorWindow : MonoBehaviour
         string name = body != null ? body.displayName.LocalizeRemoveGender() : "";
         title.text = body != null ? $"Kittopia · {name}" : "Kittopia";
 
-        foreach (Transform child in inspectorContent)
-            Destroy(child.gameObject);
-        if (body != null)
-            DebugSkin.CreateHeader(inspectorContent, name);
+        InspectorBuilder.Clear(inspectorContent);
+        if (body == null)
+            return;
+
+        var context = BodyContext.Get(body);
+        InspectorBuilder.BuildMembers(inspectorContent, new DirectEditScope(context), context.Body);
     }
 }

@@ -7,10 +7,11 @@ namespace KittopiaTech.Model;
 /// An <see cref="IValueSource"/> that writes straight to its slot on a final edit.
 /// Edits made through it are not staged.
 /// </summary>
-public sealed class DirectValueSource(BodyContext context, ISlot slot, ValueAdapter adapter)
+public sealed class DirectValueSource(DirectEditScope scope, ISlot slot, ValueAdapter adapter)
     : IValueSource
 {
-    public BodyContext Context { get; } = context;
+    public IEditScope Scope { get; } = scope;
+    public BodyContext Context => Scope.Context;
     public ISlot Slot { get; } = slot;
     public ValueAdapter Adapter { get; } = adapter;
 
@@ -51,4 +52,12 @@ public sealed class DirectValueSource(BodyContext context, ISlot slot, ValueAdap
     public void Reset() { }
 
     public void NotifyChanged() => Changed?.Invoke();
+}
+
+public sealed class DirectEditScope(BodyContext context) : IEditScope
+{
+    public BodyContext Context { get; } = context;
+
+    public IValueSource For(ISlot slot, ValueAdapter adapter) =>
+        new DirectValueSource(this, slot, adapter);
 }

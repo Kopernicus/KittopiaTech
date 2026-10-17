@@ -17,6 +17,9 @@ public interface IValueSource
     /// <summary>The type the editor works in, after unwrapping (e.g. double for NumericParser&lt;double&gt;).</summary>
     Type ValueType { get; }
 
+    /// <summary>Creates sources for values nested inside this one.</summary>
+    IEditScope Scope { get; }
+
     /// <summary>The member being edited; null for list items.</summary>
     MemberSchema Member { get; }
 
@@ -37,4 +40,12 @@ public interface IValueSource
 
     /// <summary>Raised when the value changed under the editor; editors call Refresh.</summary>
     event Action Changed;
+}
+
+/// <summary>Hands out value sources for one body; the edit session implements this once edits are staged.</summary>
+public interface IEditScope
+{
+    BodyContext Context { get; }
+
+    IValueSource For(ISlot slot, ValueAdapter adapter);
 }
