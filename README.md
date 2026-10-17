@@ -88,10 +88,11 @@ schema walk can't write.
 
 ### Apply hooks
 ```cs
-[ApplyHook(typeof(MyLoader))]
+[ApplyHook(typeof(MyLoader), Replaces = nameof(MyLoader.Rebuild))]
 static void Rebuild(BodyContext body, MyLoader loader) => loader.Rebuild();
 ```
-Runs after Apply whenever an edit landed on a `MyLoader` or anything beneath it.
+Runs after Apply whenever an edit landed on a `MyLoader` or anything beneath it. `Replaces`
+hides the loader's own `[KittopiaAction]` button for the same rebuild.
 
 ## Development
 KittopiaTech supports [HotReloadKSP](https://github.com/Phantomical/HotReloadKSP): rebuild

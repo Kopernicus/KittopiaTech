@@ -16,7 +16,7 @@ namespace KittopiaTech.UI.Inspector;
 /// <summary>A row of buttons for an object's KittopiaAction methods.</summary>
 public static class ActionBar
 {
-    /// <summary>Actions KittopiaTech replaces with its own features.</summary>
+    /// <summary>Actions KittopiaTech replaces with its own features, besides those apply hooks replace.</summary>
     static readonly HashSet<(Type, string)> Hidden = [(typeof(Body), nameof(Body.ExportConfig))];
 
     /// <summary>Actions that can't be undone but aren't marked Destructive upstream.</summary>
@@ -31,6 +31,7 @@ public static class ActionBar
             .Get(owner.GetType())
             .Actions.Where(a => a.Method.GetParameters().Length == 0)
             .Where(a => !Hidden.Contains((a.Method.DeclaringType, a.Method.Name)))
+            .Where(a => !ApplyHooks.Replaces(a.Method))
             .ToList();
         if (actions.Count == 0)
             return;

@@ -19,15 +19,19 @@ public sealed class ApplyHookAttribute(Type ownerType) : Attribute
 
     /// <summary>Lower runs first.</summary>
     public int Order { get; set; }
+
+    /// <summary>A KittopiaAction on the owner that this hook makes redundant, hidden from the UI.</summary>
+    public string Replaces { get; set; }
 }
 
 /// <summary>Follow-up rebuilds after Apply, found by scanning loaded assemblies for [ApplyHook].</summary>
 public static class ApplyHooks
 {
-    sealed class Hook(Type ownerType, int order, MethodInfo method)
+    sealed class Hook(ApplyHookAttribute attribute, MethodInfo method)
     {
-        public Type OwnerType { get; } = ownerType;
-        public int Order { get; } = order;
+        public Type OwnerType { get; } = attribute.OwnerType;
+        public int Order { get; } = attribute.Order;
+        public string Replaces { get; } = attribute.Replaces;
         public MethodInfo Method { get; } = method;
     }
 
@@ -37,7 +41,7 @@ public static class ApplyHooks
         hooks ??= AssemblyLoader
             .loadedAssemblies.SelectMany(a => SafeTypes(a.assembly))
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            .SelectMany(m => m.GetCustomAttributes<ApplyHookAttribute>().Select(a => new Hook(a.OwnerType, a.Order, m)))
+            .SelectMany(m => m.GetCustomAttributes<ApplyHookAttribute>().Select(a => new Hook(a, m)))
             .OrderBy(h => h.Order)
             .ToList();
 
@@ -52,6 +56,10 @@ public static class ApplyHooks
             return e.Types.Where(t => t != null);
         }
     }
+
+    /// <summary>Whether a hook already does what <paramref name="action"/> does after every Apply.</summary>
+    public static bool Replaces(MethodInfo action) =>
+        Hooks.Any(h => h.Replaces == action.Name && action.DeclaringType.IsAssignableFrom(h.OwnerType));
 
     /// <summary>Runs every hook whose owner contains one of <paramref name="touched"/>.</summary>
     public static void Run(BodyContext context, ICollection<object> touched)
@@ -106,15 +114,15 @@ public static class ApplyHooks
 
     // Core hooks. Orbits first, so a rebuilt sphere sees the final orbit.
 
-    [ApplyHook(typeof(OrbitLoader), Order = -10)]
+    [ApplyHook(typeof(OrbitLoader), Order = -10, Replaces = nameof(OrbitLoader.FinalizeOrbit))]
     static void FinalizeOrbit(BodyContext body, OrbitLoader orbit) => orbit.FinalizeOrbit();
 
-    [ApplyHook(typeof(PQSLoader))]
+    [ApplyHook(typeof(PQSLoader), Replaces = nameof(PQSLoader.Rebuild))]
     static void RebuildSphere(BodyContext body, PQSLoader pqs) => pqs.Rebuild();
 
-    [ApplyHook(typeof(ScaledVersionLoader))]
+    [ApplyHook(typeof(ScaledVersionLoader), Replaces = nameof(ScaledVersionLoader.RebuildScaledSpace))]
     static void RebuildScaledSpace(BodyContext body, ScaledVersionLoader scaled) => scaled.RebuildScaledSpace();
 
-    [ApplyHook(typeof(RingLoader))]
+    [ApplyHook(typeof(RingLoader), Replaces = nameof(RingLoader.RebuildRing))]
     static void RebuildRing(BodyContext body, RingLoader ring) => ring.RebuildRing();
 }
