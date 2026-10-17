@@ -23,7 +23,7 @@ public sealed class MemberSlot(object owner, MemberSchema member) : ISlot
     public object Owner { get; } = owner;
     public MemberSchema Member { get; } = member;
     public Type DeclaredType => Member.DeclaredType;
-    public string Label => Member.FieldName;
+    public string Label => Member.Label;
     public bool CanWrite => Member.CanWrite && !Member.Untouchable;
 
     public object Read() => Member.CanRead ? Member.GetValue(Owner) : null;

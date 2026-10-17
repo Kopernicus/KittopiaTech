@@ -33,6 +33,13 @@ public sealed class MemberSchema
     public ParserTarget[] Targets { get; }
     public ParserTarget Target => Targets[0];
     public string FieldName => Target.FieldName;
+
+    /// <summary>
+    /// The name shown in the UI. A "self" collection is read from repeated keys in the owner's
+    /// own node, so it's labelled by that key instead.
+    /// </summary>
+    public string Label =>
+        FieldName == "self" ? (Target as ParserTargetCollection)?.Key ?? Member.Name : FieldName;
     public MemberShape Shape { get; }
 
     /// <summary>The list element type for collections, otherwise null.</summary>
