@@ -10,13 +10,14 @@ using UnityEngine.UI;
 namespace KittopiaTech.UI;
 
 /// <summary>
-/// A colour picker pop-out: a saturation/value square, hue and alpha bars, and RGBA, HSV and
+/// An HSV colour picker pop-out: a saturation/value square over a hue bar, and RGBA, HSV and
 /// hex fields. The gradients are small textures redrawn on the CPU, so no shader is needed.
 /// </summary>
 public sealed class ColorPicker : MonoBehaviour
 {
     const int SquareSize = 128;
     const float AreaSize = 200f;
+    const float AreaWidth = 260f;
     const float BarWidth = 22f;
 
     Popout popout;
@@ -29,10 +30,8 @@ public sealed class ColorPicker : MonoBehaviour
 
     Texture2D squareTexture;
     Texture2D hueTexture;
-    Texture2D alphaTexture;
     RectTransform squareMarker;
     RectTransform hueMarker;
-    RectTransform alphaMarker;
     Image swatch;
     readonly TMP_InputField[] rgba = new TMP_InputField[4];
     readonly TMP_InputField[] hsv = new TMP_InputField[3];
@@ -41,7 +40,7 @@ public sealed class ColorPicker : MonoBehaviour
     /// <summary>Opens a picker; <paramref name="onChange"/> gets the colour and whether the edit is final.</summary>
     public static ColorPicker Open(Component owner, string title, Color initial, Action<Color, bool> onChange)
     {
-        var popout = Popout.Open(owner, title, new Vector2(330f, 340f));
+        var popout = Popout.Open(owner, title, new Vector2(330f, 370f));
         var picker = popout.gameObject.AddComponent<ColorPicker>();
         picker.popout = popout;
         picker.onChange = onChange;
@@ -73,23 +72,24 @@ public sealed class ColorPicker : MonoBehaviour
     void Build(Transform content)
     {
         var row = DebugSkin.CreateHorizontalLayout(content, 6f, controlWidth: true);
+        var areas = DebugSkin.CreateVerticalLayout(row.transform, 6f).transform;
         squareTexture = NewTexture(SquareSize, SquareSize);
-        hueTexture = NewTexture(1, 64);
-        alphaTexture = NewTexture(1, 2);
-        for (int y = 0; y < 64; y++)
-            hueTexture.SetPixel(0, y, Color.HSVToRGB(y / 63f, 1f, 1f));
+        hueTexture = NewTexture(64, 1);
+        for (int x = 0; x < 64; x++)
+            hueTexture.SetPixel(x, 0, Color.HSVToRGB(x / 63f, 1f, 1f));
         hueTexture.Apply();
 
-        squareMarker = Area(row.transform, "Square", squareTexture, AreaSize, p => SetHsv(h, p.x, p.y, a), true);
-        hueMarker = Area(row.transform, "Hue", hueTexture, BarWidth, p => SetHsv(p.y, s, v, a), false);
-        alphaMarker = Area(row.transform, "Alpha", alphaTexture, BarWidth, p => SetHsv(h, s, v, p.y), false);
+        var square = new Vector2(AreaWidth, AreaSize);
+        var bar = new Vector2(AreaWidth, BarWidth);
+        squareMarker = Area(areas, "Square", squareTexture, square, p => SetHsv(h, p.x, p.y, a), true);
+        hueMarker = Area(areas, "Hue", hueTexture, bar, p => SetHsv(p.x, s, v, a), false);
 
         var swatchObject = new GameObject("Swatch", typeof(RectTransform));
         swatchObject.transform.SetParent(row.transform, false);
         swatch = swatchObject.AddComponent<Image>();
         var swatchLayout = swatchObject.AddComponent<LayoutElement>();
         swatchLayout.flexibleWidth = 1f;
-        swatchLayout.minHeight = AreaSize;
+        swatchLayout.minHeight = AreaSize + BarWidth + 6f;
 
         FieldRow(content, "RGBA", rgba, (i, x) =>
         {
@@ -146,14 +146,10 @@ public sealed class ColorPicker : MonoBehaviour
         }
 
         var opaque = new Color(color.r, color.g, color.b, 1f);
-        alphaTexture.SetPixel(0, 0, new Color(opaque.r, opaque.g, opaque.b, 0f));
-        alphaTexture.SetPixel(0, 1, opaque);
-        alphaTexture.Apply();
         swatch.color = opaque;
 
         Place(squareMarker, s, Mathf.Clamp01(v));
-        Place(hueMarker, 0.5f, h);
-        Place(alphaMarker, 0.5f, a);
+        Place(hueMarker, h, 0.5f);
 
         for (int i = 0; i < 4; i++)
             rgba[i].text = Format(color[i]);
@@ -168,14 +164,14 @@ public sealed class ColorPicker : MonoBehaviour
     static void Place(RectTransform marker, float x, float y) =>
         marker.anchorMin = marker.anchorMax = new Vector2(x, y);
 
-    RectTransform Area(Transform parent, string name, Texture2D texture, float width, Action<Vector2> pick, bool dot)
+    RectTransform Area(Transform parent, string name, Texture2D texture, Vector2 size, Action<Vector2> pick, bool dot)
     {
         var go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         go.AddComponent<RawImage>().texture = texture;
         var layout = go.AddComponent<LayoutElement>();
-        layout.minWidth = layout.preferredWidth = width;
-        layout.minHeight = layout.preferredHeight = AreaSize;
+        layout.minWidth = layout.preferredWidth = size.x;
+        layout.minHeight = layout.preferredHeight = size.y;
         var area = go.AddComponent<PickArea>();
         area.onPick = pick;
         area.onRelease = () => Report(true);
@@ -186,7 +182,7 @@ public sealed class ColorPicker : MonoBehaviour
         marker.transform.SetParent(go.transform, false);
         marker.AddComponent<Image>().color = Color.black;
         var rect = (RectTransform)marker.transform;
-        rect.sizeDelta = dot ? new Vector2(8f, 8f) : new Vector2(width + 4f, 4f);
+        rect.sizeDelta = dot ? new Vector2(8f, 8f) : new Vector2(4f, size.y + 4f);
         var inner = new GameObject("Inner", typeof(RectTransform));
         inner.transform.SetParent(marker.transform, false);
         inner.AddComponent<Image>().color = Color.white;
@@ -233,7 +229,6 @@ public sealed class ColorPicker : MonoBehaviour
     {
         Destroy(squareTexture);
         Destroy(hueTexture);
-        Destroy(alphaTexture);
     }
 
     /// <summary>Reports the pointer's normalised position while pressed or dragged.</summary>
