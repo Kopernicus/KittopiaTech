@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Kopernicus.ConfigParser.Interfaces;
 
 namespace KittopiaTech.Model;
@@ -62,12 +63,25 @@ public static class Structure
         }
     }
 
-    /// <summary>A short description of a list item or node for headers.</summary>
-    public static string Describe(object value)
+    /// <summary>The object's name, from IPatchable or a "name" member, so list items can be told apart.</summary>
+    public static string SummaryName(object value)
     {
-        if (value == null)
-            return "none";
-        var type = value.GetType().Name;
-        return value is IPatchable { name: { Length: > 0 } name } ? $"{type} \"{name}\"" : type;
+        if (value is IPatchable { name: { Length: > 0 } patchName })
+            return patchName;
+
+        var member = TypeSchema
+            .Get(value.GetType())
+            .Members.FirstOrDefault(m => m.CanRead && !m.IsCollection && m.FieldName == "name");
+        if (member == null)
+            return null;
+        try
+        {
+            var name = member.GetValue(value);
+            return name is IWritable writable ? writable.ValueToString() : name?.ToString();
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }

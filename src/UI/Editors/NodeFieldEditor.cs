@@ -158,9 +158,11 @@ public sealed class NodeFieldEditor : FieldEditor<object>
     public override void Refresh()
     {
         var value = Source.Get();
-        string type = Structure.Describe(value);
+        string name = value != null ? Structure.SummaryName(value) : null;
+        string type = value?.GetType().Name ?? "none";
+        string summary = string.IsNullOrEmpty(name) ? "" : $" {name}";
         headerText.text =
-            $"{(expanded && value != null ? "-" : "+")} <b>{Source.Label}</b>  <color=#a3a7ab>{type}</color>";
+            $"{(expanded && value != null ? "-" : "+")} <b>{Source.Label}{summary}</b>  <color=#a3a7ab>{type}</color>";
 
         if (!ReferenceEquals(value, built))
         {
