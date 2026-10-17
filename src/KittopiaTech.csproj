@@ -34,11 +34,6 @@
       <Private>false</Private>
     </Reference>
 
-    <Reference Include="ModularFlightIntegrator">
-      <HintPath>$(DepSet1)/ModularFlightIntegrator/ModularFlightIntegrator.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-
     <KSPVersionFile Include=".">
       <Destination>$(GameDataOutDir)/KittopiaTech.version</Destination>
       <URL>https://github.com/Kopernicus/KittopiaTech/releases/latest/download/KittopiaTech.version</URL>
