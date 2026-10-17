@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using KittopiaTech.Model;
 using KittopiaTech.UI.Debug;
 using TMPro;
@@ -22,14 +23,18 @@ public abstract class CompositeFieldEditor : FieldEditor<object>
     [SerializeField]
     TextMeshProUGUI[] labels;
 
+    /// <param name="names">One label per component; a string gives one character each.</param>
     protected sealed class Components(
-        string names,
+        string[] names,
         Type type,
         Func<object, int, object> get,
         Func<object, int, object, object> set
     )
     {
-        public string Names { get; } = names;
+        public string[] Names { get; } = names;
+
+        public Components(string names, Type type, Func<object, int, object> get, Func<object, int, object, object> set)
+            : this(names.Select(c => c.ToString()).ToArray(), type, get, set) { }
         public Type Type { get; } = type;
         public Func<object, int, object> Get { get; } = get;
         public Func<object, int, object, object> Set { get; } = set;
@@ -71,11 +76,13 @@ public abstract class CompositeFieldEditor : FieldEditor<object>
                 continue;
 
             int index = i;
-            labels[i].text = components.Names[i].ToString();
+            labels[i].text = components.Names[i];
+            var labelLayout = labels[i].transform.parent.GetComponent<LayoutElement>();
+            labelLayout.minWidth = labelLayout.preferredWidth = Mathf.Max(14f, labels[i].preferredWidth + 2f);
             parts[i].Bind(
                 new ChildValueSource(
                     Source,
-                    components.Names[i].ToString(),
+                    components.Names[i],
                     components.Type,
                     v => components.Get(v, index),
                     (v, c) => components.Set(v, index, c)
@@ -185,5 +192,64 @@ public sealed class ColorFieldEditor : CompositeFieldEditor
     {
         var c = Source.Get() is Color color ? color : default;
         swatch.color = new Color(c.r, c.g, c.b, 1f);
+    }
+}
+
+/// <summary>
+/// Positions as latitude, longitude and altitude. The loaders' getters return copies, so each
+/// edit writes a whole new PositionParser back. "Vessel" copies the active vessel's position.
+/// </summary>
+[FieldEditor(typeof(Kopernicus.Configuration.Parsing.PositionParser))]
+public sealed class PositionFieldEditor : CompositeFieldEditor
+{
+    static readonly Components Parts = new(["Lat", "Lon", "Alt"], typeof(double), Get, Set);
+
+    [SerializeField]
+    Button vesselButton;
+
+    protected override Components For(Type valueType) => Parts;
+
+    static object Get(object value, int i)
+    {
+        var p = value as Kopernicus.Configuration.Parsing.PositionParser;
+        return p == null ? 0.0 : i switch
+        {
+            0 => p.Latitude.Value,
+            1 => p.Longitude.Value,
+            _ => p.Altitude.Value,
+        };
+    }
+
+    static object Set(object value, int i, object component) => Make(
+        i == 0 ? (double)component : (double)Get(value, 0),
+        i == 1 ? (double)component : (double)Get(value, 1),
+        i == 2 ? (double)component : (double)Get(value, 2)
+    );
+
+    static Kopernicus.Configuration.Parsing.PositionParser Make(double lat, double lon, double alt) =>
+        new() { Latitude = lat, Longitude = lon, Altitude = alt };
+
+    protected override void BuildPrefix(Transform parent)
+    {
+        vesselButton = DebugSkin.CreateButton(parent, "Vessel");
+        vesselButton.name = "Vessel";
+        EditorLayout.Compact(vesselButton.gameObject, 0f);
+        vesselButton.GetComponent<LayoutElement>().preferredWidth = 56f;
+    }
+
+    protected override void Awake() => vesselButton.onClick.AddListener(UseVessel);
+
+    void UseVessel()
+    {
+        var vessel = FlightGlobals.ActiveVessel;
+        if (vessel != null && vessel.mainBody == Source.Scope.Context.CelestialBody)
+            Commit(Make(vessel.latitude, vessel.longitude, vessel.altitude));
+    }
+
+    public override void Refresh()
+    {
+        var vessel = FlightGlobals.ActiveVessel;
+        vesselButton.interactable =
+            !Source.IsReadOnly && vessel != null && vessel.mainBody == Source.Scope.Context.CelestialBody;
     }
 }
