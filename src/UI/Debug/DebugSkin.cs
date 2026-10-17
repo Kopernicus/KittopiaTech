@@ -11,7 +11,7 @@ namespace KittopiaTech.UI.Debug;
 /// Widget templates cloned from the stock Alt+F12 debug screens, so our windows
 /// share their look. Copied from KSPTextureLoader's DebugUIManager.
 /// </summary>
-public static class DebugSkin
+public static partial class DebugSkin
 {
     static GameObject _labelPrefab;
     static GameObject _buttonPrefab;
