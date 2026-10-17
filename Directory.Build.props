@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <!-- The version used for all libraries in this project. -->
+        <Version>1.0.0</Version>
+        <FileVersion>$(Version)</FileVersion>
+
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>preview</LangVersion>
+
+        <DebugType>portable</DebugType>
+
+        <!-- Generate a nuget lockfile so that we can cache stuff in CI -->
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+        <ProjectRootDir>$(MSBuildThisFileDirectory)</ProjectRootDir>
+
+        <!-- Properties used by KSPBuildTools -->
+        <GameDataSubDir>KittopiaTech</GameDataSubDir>
+        <GameDataOutDir>$(ProjectRootDir)\GameData\$(GameDataSubDir)</GameDataOutDir>
+    </PropertyGroup>
+
+    <!--
+        Paths to GameData folders in the dependency set installs.
+    -->
+    <PropertyGroup>
+        <DepSet1>$(ProjectRootDir)/deps/installs/depset1/GameData</DepSet1>
+    </PropertyGroup>
+</Project>
