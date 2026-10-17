@@ -83,7 +83,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     void Browse()
     {
         if (picker == null && !Source.IsReadOnly)
-            picker = AssetPicker.Open(this, $"Pick: {Source.Label}", AssetKind.Map, pathText.text, OnPath);
+            picker = AssetPicker.Open(this, FieldPath, AssetKind.Map, pathText.text, OnPath);
     }
 
     void OnPath(string text)
@@ -130,13 +130,13 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     {
         if (popout != null)
             return;
-        popout = Popout.Open(this, $"Map: {Source.Label}", new Vector2(540f, 330f));
+        popout = Popout.Open(this, pathText.text, new Vector2(540f, 330f));
         var image = new GameObject("Preview", typeof(RectTransform));
         image.transform.SetParent(popout.Content, false);
         preview = image.AddComponent<RawImage>();
         var layout = image.AddComponent<LayoutElement>();
         layout.minHeight = layout.preferredHeight = 256f;
-        DebugSkin.CreateLabel(popout.Content, pathText.text);
+        DebugSkin.CreateLabel(popout.Content, info.text);
         Refresh();
     }
 

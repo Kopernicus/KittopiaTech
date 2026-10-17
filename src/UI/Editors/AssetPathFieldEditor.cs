@@ -44,9 +44,8 @@ public sealed class AssetPathFieldEditor : FieldEditor<object>
     {
         if (picker != null || Source.IsReadOnly)
             return;
-        string title = $"Pick: {Source.Label}";
         string[] extensions = Source.ValueType == typeof(MuParser) ? [".mu"] : [".obj", ".bin", ".mu", ".unity3d"];
-        picker = AssetPicker.Open(this, title, extensions, pathText.text, SetPath);
+        picker = AssetPicker.Open(this, FieldPath, extensions, pathText.text, SetPath);
     }
 
     void SetPath(string text)

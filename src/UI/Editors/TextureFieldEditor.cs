@@ -84,7 +84,7 @@ public sealed class TextureFieldEditor : FieldEditor<object>
     void Browse()
     {
         if (picker == null && !Source.IsReadOnly)
-            picker = AssetPicker.Open(this, $"Pick: {Source.Label}", AssetKind.Texture, pathText.text, SetPath);
+            picker = AssetPicker.Open(this, FieldPath, AssetKind.Texture, pathText.text, SetPath);
     }
 
     void SetPath(string text)
@@ -132,7 +132,7 @@ public sealed class TextureFieldEditor : FieldEditor<object>
     {
         if (popout != null)
             return;
-        popout = Popout.Open(this, $"Texture: {Source.Label}", new Vector2(540f, 330f));
+        popout = Popout.Open(this, pathText.text, new Vector2(540f, 330f));
         popout.Closed += loaded.Dispose;
         var box = new GameObject("Preview", typeof(RectTransform));
         box.transform.SetParent(popout.Content, false);
@@ -160,6 +160,6 @@ public sealed class TextureFieldEditor : FieldEditor<object>
         preview.color = texture != null ? Color.white : Color.clear;
         if (texture != null)
             previewAspect.aspectRatio = (float)texture.width / texture.height;
-        previewInfo.text = $"{pathText.text}: {loaded.Info}";
+        previewInfo.text = loaded.Info;
     }
 }

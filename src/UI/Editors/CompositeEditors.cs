@@ -208,7 +208,7 @@ public sealed class ColorFieldEditor : CompositeFieldEditor
         if (picker != null || Source.IsReadOnly)
             return;
         var current = Source.Get() is Color color ? color : default;
-        picker = ColorPicker.Open(this, $"Colour: {Source.Label}", current,
+        picker = ColorPicker.Open(this, FieldPath, current,
             (c, final) => Source.Set(c, final ? EditPhase.Final : EditPhase.Preview));
     }
 

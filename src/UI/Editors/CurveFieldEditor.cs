@@ -93,7 +93,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         if (popout != null)
             return;
 
-        popout = Popout.Open(this, $"Curve: {Source.Label}", new Vector2(520f, 460f));
+        popout = Popout.Open(this, FieldPath, new Vector2(520f, 460f));
         var image = new GameObject("Graph", typeof(RectTransform));
         image.transform.SetParent(popout.Content, false);
         graph = image.AddComponent<RawImage>();

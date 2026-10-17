@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using KittopiaTech.Model;
 using UnityEngine;
 
@@ -106,6 +107,27 @@ public abstract class FieldEditor : MonoBehaviour
 
     /// <summary>Copies the model into the widgets.</summary>
     public abstract void Refresh();
+
+    /// <summary>
+    /// The body and the rows down to this field, e.g. "Kerbin > PQS > Mods > _Height > map",
+    /// for pop-out titles. List items show their name where they have one.
+    /// </summary>
+    protected string FieldPath
+    {
+        get
+        {
+            var rows = GetComponentsInParent<Inspector.FieldRow>(true);
+            var parts = new List<string> { Source.Scope.Context.CelestialBody.bodyName };
+            for (int i = rows.Length - 1; i >= 0; i--)
+            {
+                var source = rows[i].Source;
+                var value = source.Member == null ? source.Get() : null;
+                string name = value != null ? Structure.SummaryName(value) : null;
+                parts.Add(string.IsNullOrEmpty(name) ? source.Label : name);
+            }
+            return string.Join(" > ", parts);
+        }
+    }
 }
 
 public abstract class FieldEditor<T> : FieldEditor

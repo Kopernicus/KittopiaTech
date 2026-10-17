@@ -21,6 +21,9 @@ public sealed class Popout : MonoBehaviour
     {
         var parts = DebugSkin.CreateWindow(title, DebugSkin.Canvas, size);
         parts.Window.name = $"{HotReloadSupport.ObjectPrefix}Popout({title})";
+        // Titles are field or asset paths, which can outgrow the title bar.
+        parts.Title.enableWordWrapping = false;
+        parts.Title.overflowMode = TMPro.TextOverflowModes.Ellipsis;
         var popout = parts.Window.AddComponent<Popout>();
         popout.owner = owner;
         popout.Content = parts.Content;
