@@ -46,6 +46,11 @@ public sealed class MemberSchema
     public Type ElementType { get; }
 
     public string Description { get; }
+
+    /// <summary>The member's XML doc summary if its mod ships one, else its KittopiaDescription.</summary>
+    public string Documentation => documentation ??= DocComments.Get(Member) ?? Description ?? "";
+    string documentation;
+
     public bool Hidden { get; }
     public bool Exported { get; }
     public bool Untouchable { get; }

@@ -11,6 +11,10 @@ Export body writes the whole body as a config; Export patch writes a ModuleManag
 holding only what differs from the body's Template. Both land in
 `GameData/KittopiaTech/PluginData/<body>/<timestamp>/`.
 
+Hovering a field's label shows its documentation: the `<summary>` from the XML doc file a
+mod ships beside its DLL (`Plugins/Mod.xml` next to `Plugins/Mod.dll`), or else its
+`[KittopiaDescription]`.
+
 ## Extending KittopiaTech
 Other mods can add editors, config writers and rebuild hooks without changing KittopiaTech;
 they're found by scanning loaded assemblies for these attributes. The Alt+F12 "Kittopia

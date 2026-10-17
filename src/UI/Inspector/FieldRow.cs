@@ -40,6 +40,9 @@ public sealed class FieldRow : MonoBehaviour
             vlg.childForceExpandHeight = false;
             vlg.spacing = 2f;
             // Wide editors (nodes, lists) draw their own header with the label.
+            var header = editor.transform.Find("Header");
+            if (header != null)
+                Tooltip.Attach(header.gameObject, source.Member?.Documentation);
         }
         else
         {
@@ -48,6 +51,7 @@ public sealed class FieldRow : MonoBehaviour
             row.label = CreateLabel(go.transform, source);
             row.label.transform.parent.SetAsFirstSibling();
             row.labelColor = row.label.color;
+            Tooltip.Attach(row.label.transform.parent.gameObject, source.Member?.Documentation);
 
             row.resetButton = DebugSkin.CreateButton(go.transform, "Reset", source.Reset);
             EditorLayout.Compact(row.resetButton.gameObject, 0f);
