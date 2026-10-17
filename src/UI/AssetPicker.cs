@@ -54,10 +54,7 @@ public sealed class AssetPicker : MonoBehaviour
     RawImage preview;
     AspectRatioFitter previewAspect;
     TextMeshProUGUI previewInfo;
-
-    // Whatever backs the preview and must be released with it.
-    TextureHandle<Texture2D> previewHandle;
-    Texture2D previewOwned;
+    readonly TexturePreview loaded = new();
 
     /// <summary>Opens a picker for files with <paramref name="extensions"/>, searching for <paramref name="initial"/>.</summary>
     public static Popout Open(Component owner, string title, string[] extensions, string initial, Action<string> onPick) =>
@@ -201,119 +198,19 @@ public sealed class AssetPicker : MonoBehaviour
         popout.Close();
     }
 
-    void OnDestroy() => ReleasePreview();
-
-    void ReleasePreview()
-    {
-        previewHandle?.Dispose();
-        previewHandle = null;
-        Destroy(previewOwned);
-        previewOwned = null;
-    }
+    void OnDestroy() => loaded.Dispose();
 
     void ShowPreview(string path)
     {
-        ReleasePreview();
         previewBox.SetActive(true);
         previewInfo.transform.parent.gameObject.SetActive(true);
-        Texture2D texture = null;
-        string source;
-        try
-        {
-            texture = LoadPreview(path, out source);
-        }
-        catch (Exception e)
-        {
-            source = $"failed to load: {e.Message}";
-        }
-
+        loaded.Load(path, kind);
+        var texture = loaded.Texture;
         preview.texture = texture;
         preview.color = texture != null ? Color.white : Color.clear;
         if (texture != null)
             previewAspect.aspectRatio = (float)texture.width / texture.height;
-        previewInfo.text = texture != null && texture != previewOwned
-            ? $"{texture.width}x{texture.height} {texture.format}, {source}"
-            : source;
-    }
-
-    /// <summary>
-    /// Built-in and GameDatabase textures are already in memory; anything else is loaded
-    /// through KSPTextureLoader, as Kopernicus would load it.
-    /// </summary>
-    Texture2D LoadPreview(string path, out string source)
-    {
-        if (path.StartsWith(Builtin))
-        {
-            string name = path.Substring(Builtin.Length);
-            source = "built in";
-            if (kind == AssetKind.Map)
-            {
-                var map = Resources.FindObjectsOfTypeAll<MapSO>().FirstOrDefault(m => m.name == name);
-                if (map == null)
-                    return null;
-                source = $"{map.Width}x{map.Height} {map.Depth}, built in";
-                return previewOwned = Editors.MapSOFieldEditor.Render(null, map, 512, 256);
-            }
-            return Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == name);
-        }
-
-        string url = Path.ChangeExtension(path, null);
-        var info = GameDatabase.Instance.GetTextureInfo(url);
-        if (info?.texture != null)
-        {
-            source = "GameDatabase";
-            return info.texture;
-        }
-
-        previewHandle = TextureLoader.LoadTexture<Texture2D>(
-            path,
-            new TextureLoadOptions { Hint = TextureLoadHint.Synchronous }
-        );
-        var texture = previewHandle.GetTexture();
-        source = previewHandle.AssetBundle != null ? $"bundle {previewHandle.AssetBundle}" : "loaded from disk";
-        if (!IsSingleChannel(texture.format))
-            return texture;
-
-        source = $"{texture.width}x{texture.height} {texture.format}, {source}";
-        previewHandle.Dispose();
-        previewHandle = null;
-        return previewOwned = GreyPreview(path, texture.width, texture.height);
-    }
-
-    // Unity samples these as red (or alpha), but maps read them as grey.
-    static bool IsSingleChannel(TextureFormat format) =>
-        format
-            is TextureFormat.R8
-                or TextureFormat.R16
-                or TextureFormat.RHalf
-                or TextureFormat.RFloat
-                or TextureFormat.BC4
-                or TextureFormat.Alpha8;
-
-    static Texture2D GreyPreview(string path, int width, int height)
-    {
-        using var handle = TextureLoader.LoadCPUTexture(
-            path,
-            new TextureLoadOptions { Hint = TextureLoadHint.Synchronous }
-        );
-        var cpu = handle.GetTexture();
-        bool alpha = cpu.Format == TextureFormat.Alpha8;
-
-        int w = 512, h = Mathf.Max(1, Mathf.RoundToInt(512f * height / width));
-        var pixels = new Color[w * h];
-        for (int y = 0; y < h; y++)
-        {
-            for (int x = 0; x < w; x++)
-            {
-                var c = cpu.GetPixelBilinear((x + 0.5f) / w, (y + 0.5f) / h);
-                float v = alpha ? c.a : c.r;
-                pixels[y * w + x] = new Color(v, v, v, 1f);
-            }
-        }
-        var texture = new Texture2D(w, h, TextureFormat.RGBA32, false);
-        texture.SetPixels(pixels);
-        texture.Apply();
-        return texture;
+        previewInfo.text = loaded.Info;
     }
 
     /// <summary>GameData-relative paths with the given extensions, scanned once per kind.</summary>
