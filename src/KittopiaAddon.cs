@@ -18,7 +18,9 @@ public class KittopiaAddon : MonoBehaviour
         {
             UnityEngine.Debug.LogError("[KittopiaTech] Failed to set up the debug skin, UI disabled");
             Destroy(this);
+            return;
         }
+        EditorRegistryScreen.Register();
     }
 
     void Update()

@@ -33,6 +33,7 @@ internal static class HotReloadSupport
 
         if (!DebugSkin.Initialize())
             return;
+        EditorRegistryScreen.Register();
 
         foreach (var state in windows)
         {
