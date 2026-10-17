@@ -66,6 +66,7 @@ public sealed class TextureFieldEditor : FieldEditor<object>
 
     protected override void Awake()
     {
+        thumbnail.material = PreviewMaterial.IgnoreAlpha;
         path.onClick.AddListener(Browse);
         thumbnailButton.onClick.AddListener(OpenPreview);
     }
@@ -155,6 +156,7 @@ public sealed class TextureFieldEditor : FieldEditor<object>
         var image = new GameObject("Image", typeof(RectTransform));
         image.transform.SetParent(box.transform, false);
         preview = image.AddComponent<RawImage>();
+        preview.material = PreviewMaterial.IgnoreAlpha;
         previewAspect = image.AddComponent<AspectRatioFitter>();
         previewAspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
 

@@ -132,6 +132,7 @@ public sealed class AssetPicker : MonoBehaviour
         var image = new GameObject("Image", typeof(RectTransform));
         image.transform.SetParent(box.transform, false);
         preview = image.AddComponent<RawImage>();
+        preview.material = PreviewMaterial.IgnoreAlpha;
         preview.color = Color.clear;
         previewAspect = image.AddComponent<AspectRatioFitter>();
         previewAspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;

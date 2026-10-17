@@ -65,6 +65,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
 
     protected override void Awake()
     {
+        thumbnail.material = PreviewMaterial.IgnoreAlpha;
         path.onClick.AddListener(Browse);
         thumbnailButton.onClick.AddListener(OpenPreview);
     }
@@ -156,6 +157,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         var image = new GameObject("Preview", typeof(RectTransform));
         image.transform.SetParent(popout.Content, false);
         preview = image.AddComponent<RawImage>();
+        preview.material = PreviewMaterial.IgnoreAlpha;
         var layout = image.AddComponent<LayoutElement>();
         layout.minHeight = layout.preferredHeight = 256f;
         DebugSkin.CreateLabel(popout.Content, info.text);
