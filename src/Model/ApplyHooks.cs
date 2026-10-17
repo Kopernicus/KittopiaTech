@@ -117,6 +117,27 @@ public static class ApplyHooks
     [ApplyHook(typeof(OrbitLoader), Order = -10, Replaces = nameof(OrbitLoader.FinalizeOrbit))]
     static void FinalizeOrbit(BodyContext body, OrbitLoader orbit) => orbit.FinalizeOrbit();
 
+    /// <summary>
+    /// The PQS renders with its own copy of the quality material that the loader edits, made
+    /// once at setup. Recopy it so the rebuilt quads pick up material edits.
+    /// </summary>
+    [ApplyHook(typeof(PQSLoader), Order = -1)]
+    static void RecopySurfaceMaterial(BodyContext body, PQSLoader pqs)
+    {
+        var sphere = pqs.Value;
+        var old = sphere.surfaceMaterial;
+        sphere.ApplyTerrainShaderSettings();
+
+        // Only the per-sphere copy is ours to destroy, not a shared quality material.
+        Material[] shared =
+        [
+            sphere.surfaceMaterial, sphere.ultraQualitySurfaceMaterial, sphere.highQualitySurfaceMaterial,
+            sphere.mediumQualitySurfaceMaterial, sphere.lowQualitySurfaceMaterial, sphere.fallbackMaterial,
+        ];
+        if (old != null && !shared.Contains(old))
+            UnityEngine.Object.Destroy(old);
+    }
+
     [ApplyHook(typeof(PQSLoader), Replaces = nameof(PQSLoader.Rebuild))]
     static void RebuildSphere(BodyContext body, PQSLoader pqs) => pqs.Rebuild();
 
