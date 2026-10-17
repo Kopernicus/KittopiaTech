@@ -185,5 +185,9 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         typePicker.gameObject.SetActive(canCreate && concreteTypes != null);
         createButton.gameObject.SetActive(canCreate);
         removeButton.gameObject.SetActive(editable && value != null);
+
+        // An empty member that can't be created (e.g. a non-star's Light) has nothing to show.
+        if (Source.Member != null)
+            transform.parent.gameObject.SetActive(value != null || canCreate);
     }
 }
