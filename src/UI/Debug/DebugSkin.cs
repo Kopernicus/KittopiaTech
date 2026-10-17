@@ -309,6 +309,22 @@ public static partial class DebugSkin
         return layout;
     }
 
+    /// <summary>A 1px divider line, for a vertical or horizontal layout group.</summary>
+    public static Image CreateSeparator(Transform parent, bool vertical)
+    {
+        var go = new GameObject("Separator", typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        var image = go.AddComponent<Image>();
+        image.color = new Color(1f, 1f, 1f, 0.15f);
+        image.raycastTarget = false;
+        var layout = go.AddComponent<LayoutElement>();
+        if (vertical)
+            layout.minWidth = layout.preferredWidth = 1f;
+        else
+            layout.minHeight = layout.preferredHeight = 1f;
+        return image;
+    }
+
     public static HorizontalLayoutGroup CreateHorizontalLayout(
         Transform parent,
         float spacing = 8f,

@@ -80,10 +80,13 @@ public class InspectorWindow : MonoBehaviour
         treeLayout.flexibleWidth = 0f;
         DebugSkin.CreateScrollView(tree.transform, out treeContent);
 
+        DebugSkin.CreateSeparator(split.transform, vertical: true);
+
         var inspector = DebugSkin.CreateVerticalLayout(split.transform);
         inspector.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
         DebugSkin.CreateScrollView(inspector.transform, out inspectorContent);
 
+        DebugSkin.CreateSeparator(content, vertical: false);
         BuildFooter(content);
         BuildTree();
     }
