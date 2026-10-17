@@ -34,6 +34,9 @@
       <Private>false</Private>
     </Reference>
 
+    <!-- Opt in to HotReloadKSP; see HotReloadSupport. -->
+    <AssemblyMetadata Include="HotReload" Value="true" />
+
     <KSPVersionFile Include=".">
       <Destination>$(GameDataOutDir)/KittopiaTech.version</Destination>
       <URL>https://github.com/Kopernicus/KittopiaTech/releases/latest/download/KittopiaTech.version</URL>
