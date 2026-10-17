@@ -67,6 +67,14 @@
     <MakeDir Directories="$(GameDataOutDir)" />
   </Target>
 
+  <!-- Shader bundles built by the Unity project in unity/. -->
+  <Target Name="CopyGameDataFiles" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <_GameDataFiles Include="$(MSBuildProjectDirectory)/GameData/**/*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_GameDataFiles)" DestinationFolder="$(GameDataOutDir)/%(RecursiveDir)" />
+  </Target>
+
   <Target Name="CopyExtrasToPluginFolder" AfterTargets="KSPBT_CopyDLLsToPluginFolder">
     <ItemGroup>
       <_ExtrasToCopy Include="$(TargetDir)/**/*.pdb" />

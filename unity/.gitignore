@@ -1,0 +1,15 @@
+# Unity generated directories
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Generated IDE projects
+/*.csproj
+/*.sln
+.vs/
+
+# Unity recreates default settings on open; the build script sets what it needs.
+/ProjectSettings/*
+!/ProjectSettings/ProjectVersion.txt
