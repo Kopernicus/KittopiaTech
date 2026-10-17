@@ -12,8 +12,8 @@ using Kopernicus.ConfigParser.Enumerations;
 namespace KittopiaTech.UI.Editors;
 
 /// <summary>
-/// The fallback for collections: a foldout of item rows with move and remove buttons, and an
-/// Add bar. Adding and removing items are structural edits and happen immediately.
+/// The fallback for collections: a foldout of item rows with a drag grip and remove button, and
+/// an Add bar. Adding and removing items are structural edits and happen immediately.
 /// </summary>
 [FieldEditor(typeof(Shapes.Collection))]
 public sealed class ListFieldEditor : FieldEditor<object>
@@ -119,6 +119,11 @@ public sealed class ListFieldEditor : FieldEditor<object>
         var row = DebugSkin.CreateHorizontalLayout(items, 4f, controlWidth: true);
         row.childAlignment = TextAnchor.UpperLeft;
 
+        var grip = ItemButton(row.transform, "Drag", "=", null);
+        grip.gameObject.AddComponent<ListDragHandle>()
+            .Setup((RectTransform)items, (RectTransform)row.transform, index, Move);
+        grip.interactable = list.Count > 1;
+
         var shape = MemberSchema.GetConfigType(elementType) == ConfigType.Node
             ? MemberShape.Node
             : MemberShape.Value;
@@ -127,8 +132,6 @@ public sealed class ListFieldEditor : FieldEditor<object>
         var fieldRow = FieldRow.Create(row.transform, Source.Scope.For(slot, resolution.Adapter), resolution);
         fieldRow.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
-        ItemButton(row.transform, "Up", "^", () => Move(index, -1)).interactable = index > 0;
-        ItemButton(row.transform, "Down", "v", () => Move(index, 1)).interactable = index < list.Count - 1;
         ItemButton(row.transform, "Remove", "x", () => Remove(index));
     }
 
@@ -187,10 +190,11 @@ public sealed class ListFieldEditor : FieldEditor<object>
             list.RemoveAt(index);
         });
 
-    void Move(int index, int delta) =>
+    void Move(int from, int to) =>
         Mutate(() =>
         {
-            int other = index + delta;
-            (list[index], list[other]) = (list[other], list[index]);
+            var item = list[from];
+            list.RemoveAt(from);
+            list.Insert(to, item);
         });
 }
