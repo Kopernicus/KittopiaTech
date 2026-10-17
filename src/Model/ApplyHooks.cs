@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Kopernicus.Configuration;
+using Kopernicus.Configuration.MaterialLoader;
+using Kopernicus.OnDemand;
 using UnityEngine;
 
 namespace KittopiaTech.Model;
@@ -136,6 +138,30 @@ public static class ApplyHooks
         ];
         if (old != null && !shared.Contains(old))
             UnityEngine.Object.Destroy(old);
+    }
+
+    // Kopernicus copies a material's on-demand texture paths into the body's on-demand loaders
+    // when it builds the body, and those would put the old textures back over texture edits.
+    // RefreshOnDemand is only in Kopernicus builds with MaterialLoader.CreateExisting, the only
+    // ones that give spawned bodies material loaders to edit.
+    static readonly MethodInfo RefreshScaledOnDemand = typeof(MaterialLoader).GetMethod(
+        "RefreshOnDemand", [typeof(GameObject)]);
+    static readonly MethodInfo RefreshSurfaceOnDemand = typeof(MaterialLoader).GetMethod(
+        "RefreshOnDemand", [typeof(PQS), typeof(PQSMod_OnDemandHandler)]);
+
+    [ApplyHook(typeof(ScaledVersionLoader), Order = -1)]
+    static void RefreshScaledTextures(BodyContext body, ScaledVersionLoader scaled)
+    {
+        if (scaled.Material != null)
+            RefreshScaledOnDemand?.Invoke(scaled.Material, [scaled.Value.scaledBody]);
+    }
+
+    [ApplyHook(typeof(PQSLoader), Order = -2)]
+    static void RefreshSurfaceTextures(BodyContext body, PQSLoader pqs)
+    {
+        var handler = pqs.Value.GetComponentInChildren<PQSMod_OnDemandHandler>(true);
+        if (pqs.SurfaceMaterial != null && handler != null)
+            RefreshSurfaceOnDemand?.Invoke(pqs.SurfaceMaterial, [pqs.Value, handler]);
     }
 
     [ApplyHook(typeof(PQSLoader), Replaces = nameof(PQSLoader.Rebuild))]
