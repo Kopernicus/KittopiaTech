@@ -39,7 +39,10 @@ public sealed class CustomMaterialWriter : IConfigWriter
                 continue;
             node.AddValue(name, text);
 
-            if (shader.GetPropertyType(i) == ShaderPropertyType.Texture)
+            if (
+                shader.GetPropertyType(i) == ShaderPropertyType.Texture
+                && (shader.GetPropertyFlags(i) & ShaderPropertyFlags.NoScaleOffset) == 0
+            )
             {
                 Vector2 scale = loader.GetTextureScale(name), offset = loader.GetTextureOffset(name);
                 node.AddValue(name + "Scale", $"{F(scale.x)},{F(scale.y)}");
