@@ -17,13 +17,19 @@ current value. Click an entry to preview it; double-click or press Select to use
 press Enter to use what you typed. Clicking a texture or map thumbnail opens a larger
 preview. Textures and on-demand maps that aren't loaded yet are sampled from their file for
 thumbnails; only the preview window loads the full texture, and on-demand maps stay
-unloaded.
+unloaded. Previews show a texture's colour without its alpha, since alpha often holds
+something else, like gloss. This needs KittopiaTech's shader bundle, which is only built for
+Windows so far; elsewhere, previews show alpha as transparency.
 
 Each material (the scaled and PQS surface materials, ocean and scatter materials) has a
 Shader properties section listing every property of its shader by its raw name, e.g.
 `_MainTex`, including those with no named field. Hover a property for the shader's
 description and range. Materials on spawned bodies need a Kopernicus build with
 `MaterialLoader.CreateExisting`; without it, those materials don't appear.
+
+Shaders Kopernicus has no loader for, such as a planet pack's own, get only the Shader
+properties section, and export as raw `_X` keys plus their `keyword`s. Keywords can't be
+edited yet.
 
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for

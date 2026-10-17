@@ -41,6 +41,18 @@ Alternatively, you can set the `KSP_ROOT` environment variable.
 Run `dotnet build`. The built mod will be placed in `GameData/KittopiaTech`,
 which you can then copy or symlink into your KSP install's `GameData` folder.
 
+### Shader bundle
+The shaders in `unity/` are built into `src/GameData/Shaders`, which is checked in, so only
+rebuild it after changing them. Open `unity/` in Unity 2019.4.18f1 and use KittopiaTech >
+Build Shader Bundles, or run:
+
+```
+Unity.exe -batchmode -quit -projectPath unity -executeMethod BuildShaderBundles.Build
+```
+
+Each platform's bundle needs that platform's build support installed in Unity; missing ones
+are skipped.
+
 ## Hot reload
 KittopiaTech supports [HotReloadKSP](https://github.com/Phantomical/HotReloadKSP): rebuild
 and reload the DLL without restarting the game. Open windows are reopened after a reload;
