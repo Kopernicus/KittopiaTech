@@ -74,6 +74,9 @@ public sealed class BodyContext
         Body = new Body(body);
     }
 
+    /// <summary>A context that isn't cached, for throwaway bodies such as template clones.</summary>
+    public static BodyContext Detached(CelestialBody body) => new(body);
+
     public static BodyContext Get(CelestialBody body)
     {
         if (!Contexts.TryGetValue(body, out var context))
