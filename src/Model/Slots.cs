@@ -37,7 +37,11 @@ public sealed class MemberSlot(object owner, MemberSchema member) : ISlot
         System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Owner) ^ Member.GetHashCode();
 }
 
-public sealed class ListSlot(IList list, int index, Type elementType) : ISlot
+/// <param name="writeBack">
+/// Called after a write, for lists whose getter returns a copy that must be set back.
+/// </param>
+public sealed class ListSlot(IList list, int index, Type elementType, Action writeBack = null)
+    : ISlot
 {
     public IList List { get; } = list;
     public int Index { get; } = index;
@@ -49,7 +53,11 @@ public sealed class ListSlot(IList list, int index, Type elementType) : ISlot
 
     public object Read() => Index < List.Count ? List[Index] : null;
 
-    public void Write(object raw) => List[Index] = raw;
+    public void Write(object raw)
+    {
+        List[Index] = raw;
+        writeBack?.Invoke();
+    }
 
     public override bool Equals(object obj) =>
         obj is ListSlot other && ReferenceEquals(List, other.List) && Index == other.Index;

@@ -1,3 +1,4 @@
+using KittopiaTech.Model;
 using KittopiaTech.UI.Debug;
 using KittopiaTech.UI.Inspector;
 using TMPro;
@@ -71,7 +72,7 @@ public sealed class NodeFieldEditor : FieldEditor<object>
     public override void Refresh()
     {
         var value = Source.Get();
-        string type = value?.GetType().Name ?? "none";
+        string type = Structure.Describe(value);
         headerText.text =
             $"{(expanded && value != null ? "-" : "+")} <b>{Source.Label}</b>  <color=#a3a7ab>{type}</color>";
 
