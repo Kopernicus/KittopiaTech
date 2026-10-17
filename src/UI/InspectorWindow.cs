@@ -26,7 +26,6 @@ public class InspectorWindow : MonoBehaviour
     Button discardButton;
     EditSession session;
     readonly Dictionary<CelestialBody, TextMeshProUGUI> treeLabels = [];
-    Color treeLabelColor;
 
     public CelestialBody Body { get; private set; }
 
@@ -147,9 +146,6 @@ public class InspectorWindow : MonoBehaviour
 
     public static readonly Color PendingColor = new(1f, 0.71f, 0.28f);
 
-    /// <summary>The pending colour for text on light buttons, where amber is hard to read.</summary>
-    public static readonly Color PendingOnLightColor = new(0.8f, 0.4f, 0f);
-
     void UpdateFooter()
     {
         int count = session?.PendingCount ?? 0;
@@ -182,7 +178,7 @@ public class InspectorWindow : MonoBehaviour
     void UpdateTreeEntry(EditSession changed)
     {
         if (treeLabels.TryGetValue(changed.Context.CelestialBody, out var label))
-            label.color = changed.PendingCount > 0 ? PendingOnLightColor : treeLabelColor;
+            label.color = changed.PendingCount > 0 ? PendingColor : Color.white;
     }
 
     void AddTreeEntry(CelestialBody body, int depth)
@@ -193,11 +189,11 @@ public class InspectorWindow : MonoBehaviour
 
         var button = DebugSkin.CreateButton(row.transform, body.displayName.LocalizeRemoveGender(), () => Select(body));
         button.GetComponent<LayoutElement>().minHeight = 22f;
+        DebugSkin.StyleAsSidebarItem(button);
         var label = button.GetComponentInChildren<TextMeshProUGUI>();
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.margin = new Vector4(6f, 0f, 6f, 0f);
         treeLabels[body] = label;
-        treeLabelColor = label.color;
 
         var children = body.orbitingBodies
             .Where(b => b != body)
@@ -210,7 +206,10 @@ public class InspectorWindow : MonoBehaviour
     {
         Body = body;
         foreach (var (cb, label) in treeLabels.Select(kv => (kv.Key, kv.Value)))
+        {
             label.fontStyle = cb == body ? FontStyles.Bold : FontStyles.Normal;
+            DebugSkin.SetSidebarItemSelected(label.GetComponentInParent<Button>(), cb == body);
+        }
 
         string name = body != null ? body.displayName.LocalizeRemoveGender() : "";
         title.text = body != null ? $"Kittopia · {name}" : "Kittopia";

@@ -292,6 +292,10 @@ public static partial class DebugSkin
         button.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
     }
 
+    /// <summary>The stock sidebar marks its current item by making the background more opaque.</summary>
+    public static void SetSidebarItemSelected(Button button, bool selected) =>
+        button.targetGraphic.color = new Color(1f, 1f, 1f, selected ? 0.797f : 0.3f);
+
     public static Toggle CreateToggle(Transform parent, string label)
     {
         var go = Spawn(_togglePrefab, parent, "Toggle");
