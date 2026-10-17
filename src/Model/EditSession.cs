@@ -98,13 +98,14 @@ public sealed class EditSession : IEditScope
     }
 
     /// <summary>Writes every pending edit. Edits that fail stay pending with their error.</summary>
-    public void Apply() => Apply(pending.Values.ToList());
+    public void Apply() => Apply(pending.Values.ToList(), runHooks: true);
 
     /// <summary>Applies only the edits on objects reachable from <paramref name="root"/>.</summary>
     public void ApplyWithin(object root)
     {
         var owners = Reachable(root);
-        Apply(pending.Values.Where(p => owners.Contains(p.Slot.Owner)).ToList());
+        // No hooks: this runs ahead of an action, which is usually the rebuild itself.
+        Apply(pending.Values.Where(p => owners.Contains(p.Slot.Owner)).ToList(), runHooks: false);
     }
 
     /// <summary>Drops edits on objects reachable from <paramref name="root"/>, e.g. before removing it.</summary>
@@ -116,10 +117,12 @@ public sealed class EditSession : IEditScope
         Changed?.Invoke();
     }
 
-    void Apply(List<Pending> edits)
+    void Apply(List<Pending> edits, bool runHooks)
     {
         if (edits.Count == 0)
             return;
+
+        var touched = new HashSet<object>(ReferenceComparer.Instance);
 
         // PreApply members first, as the parser does; otherwise in the order they were made.
         var ordered = edits.OrderByDescending(p => p.Slot.Member?.PreApply ?? false).ThenBy(p => p.Order);
@@ -131,6 +134,7 @@ public sealed class EditSession : IEditScope
                 {
                     edit.Slot.Write(edit.Adapter.Wrap(edit.Value));
                     pending.Remove(edit.Slot);
+                    touched.Add(edit.Slot.Owner);
                 }
                 catch (Exception e)
                 {
@@ -139,6 +143,9 @@ public sealed class EditSession : IEditScope
                 }
             }
         }
+
+        if (runHooks)
+            ApplyHooks.Run(Context, touched);
         Changed?.Invoke();
     }
 
@@ -153,39 +160,50 @@ public sealed class EditSession : IEditScope
             var current = queue.Dequeue();
             if (current == null || !seen.Add(current))
                 continue;
-
-            if (current is IList list)
-            {
-                foreach (var item in list)
-                    queue.Enqueue(item);
-                continue;
-            }
-
-            foreach (var member in TypeSchema.Get(current.GetType()).Members)
-            {
-                if (member.Shape == MemberShape.Value || !member.CanRead)
-                    continue;
-                try
-                {
-                    queue.Enqueue(member.GetValue(current));
-                }
-                catch (Exception)
-                {
-                    // Some getters throw on partially set up bodies; skip them.
-                }
-            }
+            foreach (var child in Children(current))
+                queue.Enqueue(child);
         }
         return seen;
     }
 
-    sealed class ReferenceComparer : IEqualityComparer<object>
+    /// <summary>The node values and list items directly beneath <paramref name="node"/>.</summary>
+    internal static IEnumerable<object> Children(object node)
     {
-        public static readonly ReferenceComparer Instance = new();
+        if (node is IList list)
+        {
+            foreach (var item in list)
+                yield return item;
+            yield break;
+        }
 
-        public new bool Equals(object x, object y) => ReferenceEquals(x, y);
+        foreach (var member in TypeSchema.Get(node.GetType()).Members)
+        {
+            if (member.Shape == MemberShape.Value || !member.CanRead)
+                continue;
 
-        public int GetHashCode(object obj) => RuntimeHelpers.GetHashCode(obj);
+            object value;
+            try
+            {
+                value = member.GetValue(node);
+            }
+            catch (Exception)
+            {
+                // Some getters throw on partially set up bodies; skip them.
+                continue;
+            }
+            if (value != null)
+                yield return value;
+        }
     }
+}
+
+internal sealed class ReferenceComparer : IEqualityComparer<object>
+{
+    public static readonly ReferenceComparer Instance = new();
+
+    public new bool Equals(object x, object y) => ReferenceEquals(x, y);
+
+    public int GetHashCode(object obj) => RuntimeHelpers.GetHashCode(obj);
 }
 
 /// <summary>A value source whose writes are staged in an <see cref="EditSession"/>.</summary>
