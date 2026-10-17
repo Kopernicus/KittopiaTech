@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using KittopiaTech.Export;
 using KittopiaTech.Model;
 using KittopiaTech.UI.Debug;
 using KittopiaTech.UI.Inspector;
@@ -20,6 +21,7 @@ public class InspectorWindow : MonoBehaviour
     Transform treeContent;
     Transform inspectorContent;
     TextMeshProUGUI pendingLabel;
+    TextMeshProUGUI exportLabel;
     Button applyButton;
     Button discardButton;
     EditSession session;
@@ -90,15 +92,52 @@ public class InspectorWindow : MonoBehaviour
     {
         var footer = DebugSkin.CreateHorizontalLayout(content, 6f, controlWidth: true);
         footer.name = "Footer";
+        var exportBody = DebugSkin.CreateButton(footer.transform, "Export body", () => Export(patch: false));
+        var exportPatch = DebugSkin.CreateButton(footer.transform, "Export patch", () => Export(patch: true));
+        exportLabel = DebugSkin.CreateLabel(footer.transform, "");
+        exportLabel.enableWordWrapping = false;
+        exportLabel.overflowMode = TextOverflowModes.Ellipsis;
         pendingLabel = DebugSkin.CreateLabel(footer.transform, "");
+        pendingLabel.alignment = TextAlignmentOptions.MidlineRight;
         pendingLabel.color = PendingColor;
         discardButton = DebugSkin.CreateButton(footer.transform, "Discard", () => session?.Discard());
         applyButton = DebugSkin.CreateButton(footer.transform, "Apply", () => session?.Apply());
-        foreach (var button in new[] { discardButton, applyButton })
+        foreach (var button in new[] { exportBody, exportPatch, discardButton, applyButton })
         {
+            button.name = button.GetComponentInChildren<TextMeshProUGUI>().text.Replace(" ", "");
             var layout = button.GetComponent<LayoutElement>();
             layout.flexibleWidth = 0f;
             layout.preferredWidth = 100f;
+        }
+    }
+
+    /// <summary>Exports the applied state; pending edits aren't included.</summary>
+    void Export(bool patch)
+    {
+        if (session == null)
+            return;
+
+        string skipped = session.PendingCount > 0 ? $" ({session.PendingCount} pending not included)" : "";
+        try
+        {
+            string path;
+            string warning = null;
+            if (patch)
+                path = ExportFiles.ExportPatch(session.Context, out warning);
+            else
+                path = ExportFiles.ExportBody(session.Context);
+
+            if (path == null)
+                exportLabel.text = warning ?? "No Template to patch against; use Export body";
+            else
+                exportLabel.text = $"Saved {path}, path copied{skipped}";
+            if (warning != null && path != null)
+                UnityEngine.Debug.LogWarning($"[KittopiaTech] Patch for {Body.name}: {warning}");
+        }
+        catch (System.Exception e)
+        {
+            exportLabel.text = "Export failed, see log";
+            UnityEngine.Debug.LogError($"[KittopiaTech] Export failed: {e}");
         }
     }
 
@@ -168,6 +207,7 @@ public class InspectorWindow : MonoBehaviour
             session.Changed += UpdateFooter;
             InspectorBuilder.BuildMembers(inspectorContent, session, context.Body);
         }
+        exportLabel.text = "";
         UpdateFooter();
     }
 }
