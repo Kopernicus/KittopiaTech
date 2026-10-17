@@ -102,7 +102,7 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         Refresh();
     }
 
-    static readonly string PendingHex = ColorUtility.ToHtmlStringRGB(InspectorWindow.PendingOnLightColor);
+    static readonly string PendingHex = ColorUtility.ToHtmlStringRGB(InspectorWindow.PendingColor);
 
     /// <summary>Header text in the pending colour when something beneath it is modified.</summary>
     public static string PendingLabel(string label, bool pending) =>
@@ -127,6 +127,7 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         row.name = "Header";
         header = DebugSkin.CreateButton(row.transform, "");
         header.name = "Foldout";
+        DebugSkin.StyleAsSidebarItem(header);
         EditorLayout.Compact(header.gameObject);
         headerText = header.GetComponentInChildren<TextMeshProUGUI>();
         headerText.alignment = TextAlignmentOptions.MidlineLeft;

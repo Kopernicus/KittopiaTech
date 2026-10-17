@@ -19,6 +19,7 @@ public static partial class DebugSkin
     static GameObject _inputFieldPrefab;
     static GameObject _scrollbarPrefab;
     static GameObject _windowPrefab;
+    static Image _sidebarItemImage;
 
     public static bool Initialized { get; private set; }
 
@@ -70,6 +71,9 @@ public static partial class DebugSkin
             ),
             "Scrollbar"
         );
+
+        var treeItem = spawner.screenPrefab?.GetComponentInChildren<UITreeView>(true)?.itemPrefab;
+        _sidebarItemImage = treeItem?.GetComponent<Button>()?.targetGraphic as Image;
 
         Initialized =
             _labelPrefab != null
@@ -265,6 +269,27 @@ public static partial class DebugSkin
 
         go.GetComponentInChildren<TextMeshProUGUI>().text = text;
         return button;
+    }
+
+    /// <summary>Restyles a button like the Alt+F12 sidebar items: translucent grey, white text.</summary>
+    public static void StyleAsSidebarItem(Button button)
+    {
+        var image = (Image)button.targetGraphic;
+        if (_sidebarItemImage != null)
+        {
+            image.sprite = _sidebarItemImage.sprite;
+            image.type = _sidebarItemImage.type;
+        }
+        image.color = new Color(1f, 1f, 1f, 0.3f);
+
+        var colors = button.colors;
+        colors.normalColor = new Color(0.346f, 0.346f, 0.346f);
+        colors.highlightedColor = new Color(0.252f, 0.279f, 0.36f);
+        colors.pressedColor = new Color(0.286f, 0.368f, 0.27f);
+        colors.selectedColor = colors.normalColor;
+        button.colors = colors;
+
+        button.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
     }
 
     public static Toggle CreateToggle(Transform parent, string label)
