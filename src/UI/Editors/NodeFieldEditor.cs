@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using KittopiaTech.Model;
 using KittopiaTech.UI.Debug;
 using KittopiaTech.UI.Inspector;
@@ -23,14 +25,79 @@ public sealed class NodeFieldEditor : FieldEditor<object>
     [SerializeField]
     Transform content;
 
+    [SerializeField]
+    TMP_Dropdown typePicker;
+
+    [SerializeField]
+    Button createButton;
+
+    [SerializeField]
+    Button removeButton;
+
     bool expanded;
     object built;
+    Type[] concreteTypes;
 
     public override FieldLayout Layout => FieldLayout.Wide;
 
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
         CreateFoldout(transform, out header, out headerText, out content);
+
+        var row = header.transform.parent;
+        typePicker = DebugSkin.CreateDropdown(row);
+        EditorLayout.Compact(typePicker.gameObject, 0f);
+        typePicker.GetComponent<LayoutElement>().preferredWidth = 180f;
+        createButton = DebugSkin.CreateButton(row, "Create");
+        createButton.name = "Create";
+        EditorLayout.Compact(createButton.gameObject, 0f);
+        createButton.GetComponent<LayoutElement>().preferredWidth = 70f;
+        removeButton = DebugSkin.CreateButton(row, "x");
+        removeButton.name = "Remove";
+        EditorLayout.Compact(removeButton.gameObject, 0f);
+        var removeLayout = removeButton.GetComponent<LayoutElement>();
+        removeLayout.minWidth = removeLayout.preferredWidth = EditorLayout.RowHeight;
+    }
+
+    protected override void OnBind()
+    {
+        concreteTypes = Structure.NeedsTypePicker(Source.ValueType)
+            ? TypeSchema.GetConcreteTypes(Source.ValueType)
+            : null;
+        if (concreteTypes != null)
+        {
+            typePicker.ClearOptions();
+            typePicker.AddOptions(concreteTypes.Select(t => t.Name).ToList());
+        }
+    }
+
+    void Create()
+    {
+        var type = concreteTypes != null ? concreteTypes[typePicker.value] : Source.ValueType;
+        try
+        {
+            Source.Set(Structure.Create(Source.Scope.Context, type));
+            expanded = true;
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[KittopiaTech] Failed to create {Source.Label}: {e}");
+        }
+        Refresh();
+    }
+
+    void Remove()
+    {
+        try
+        {
+            Structure.Destroy(Source.Scope.Context, Source.Get());
+            Source.Set(null);
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[KittopiaTech] Failed to remove {Source.Label}: {e}");
+        }
+        Refresh();
     }
 
     /// <summary>A header button over an indented, initially hidden content area.</summary>
@@ -47,7 +114,11 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         vlg.childForceExpandHeight = false;
         vlg.spacing = 2f;
 
-        header = DebugSkin.CreateButton(parent, "");
+        // A row, so editors can put buttons beside the header.
+        var row = DebugSkin.CreateHorizontalLayout(parent, 4f, controlWidth: true);
+        row.name = "Header";
+        header = DebugSkin.CreateButton(row.transform, "");
+        header.name = "Foldout";
         EditorLayout.Compact(header.gameObject);
         headerText = header.GetComponentInChildren<TextMeshProUGUI>();
         headerText.alignment = TextAlignmentOptions.MidlineLeft;
@@ -61,7 +132,12 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         content = body.transform;
     }
 
-    protected override void Awake() => header.onClick.AddListener(ToggleExpanded);
+    protected override void Awake()
+    {
+        header.onClick.AddListener(ToggleExpanded);
+        createButton.onClick.AddListener(Create);
+        removeButton.onClick.AddListener(Remove);
+    }
 
     void ToggleExpanded()
     {
@@ -89,5 +165,13 @@ public sealed class NodeFieldEditor : FieldEditor<object>
             built = value;
         }
         content.gameObject.SetActive(show);
+
+        // Untouchable or read-only members can't be created or removed, and list items are
+        // added and removed by their list.
+        bool editable = !Source.IsReadOnly && Source.Member != null;
+        bool canCreate = editable && value == null && Structure.CanCreate(Source.ValueType);
+        typePicker.gameObject.SetActive(canCreate && concreteTypes != null);
+        createButton.gameObject.SetActive(canCreate);
+        removeButton.gameObject.SetActive(editable && value != null);
     }
 }
