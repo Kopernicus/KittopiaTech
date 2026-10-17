@@ -19,6 +19,12 @@ preview. Textures and on-demand maps that aren't loaded yet are sampled from the
 thumbnails; only the preview window loads the full texture, and on-demand maps stay
 unloaded.
 
+Each material (the scaled and PQS surface materials, ocean and scatter materials) has a
+Shader properties section listing every property of its shader by its raw name, e.g.
+`_MainTex`, including those with no named field. Hover a property for the shader's
+description and range. Materials on spawned bodies need a Kopernicus build with
+`MaterialLoader.CreateExisting`; without it, those materials don't appear.
+
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for
 exporting height, colour and normal maps.

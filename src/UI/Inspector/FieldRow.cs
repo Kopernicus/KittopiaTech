@@ -119,6 +119,7 @@ public static class InspectorBuilder
             }
         }
 
+        ShaderProperties.Build(parent, scope, owner);
         ActionBar.Build(parent, scope, owner);
     }
 
