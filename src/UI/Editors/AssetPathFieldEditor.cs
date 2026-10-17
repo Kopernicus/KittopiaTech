@@ -61,10 +61,11 @@ public sealed class AssetPathFieldEditor : FieldEditor<object>
 
     void Browse()
     {
-        var extensions = IsTexture
-            ? AssetPicker.TextureExtensions
-            : Source.ValueType == typeof(MuParser) ? [".mu"] : [".obj", ".bin", ".mu", ".unity3d"];
-        AssetPicker.Open(this, $"Pick: {Source.Label}", extensions, IsTexture, SetPath);
+        string title = $"Pick: {Source.Label}";
+        if (IsTexture)
+            AssetPicker.Open(this, title, AssetKind.Texture, SetPath);
+        else
+            AssetPicker.Open(this, title, Source.ValueType == typeof(MuParser) ? [".mu"] : [".obj", ".bin", ".mu", ".unity3d"], SetPath);
     }
 
     void SetPath(string text)

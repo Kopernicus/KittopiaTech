@@ -11,7 +11,8 @@ namespace KittopiaTech;
 /// <summary>
 /// Records which textures count as BUILTIN/: those in memory when the PSystemSpawn scene loads,
 /// before Kopernicus parses any configs, minus the ones GameDatabase loaded from GameData.
-/// Later the set would also include planet pack textures and UI art.
+/// Later the set would also include planet pack textures and UI art. Stock MapSOs, which
+/// configs reference as BUILTIN/ maps, are recorded at the same time.
 /// </summary>
 [KSPAddon(KSPAddon.Startup.Instantly, once: true)]
 public class BuiltinTextures : MonoBehaviour
@@ -19,6 +20,8 @@ public class BuiltinTextures : MonoBehaviour
     const string PSystemScene = "PSystemSpawn";
 
     public static string[] Names { get; internal set; } = [];
+
+    public static string[] MapNames { get; internal set; } = [];
 
     void Awake()
     {
@@ -49,6 +52,13 @@ public class BuiltinTextures : MonoBehaviour
             .Distinct()
             .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        UnityEngine.Debug.Log($"[KittopiaTech] Recorded {Names.Length} built-in textures");
+        MapNames = Resources
+            .FindObjectsOfTypeAll<MapSO>()
+            .Select(m => m.name)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Distinct()
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        UnityEngine.Debug.Log($"[KittopiaTech] Recorded {Names.Length} built-in textures, {MapNames.Length} maps");
     }
 }

@@ -28,6 +28,9 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     TextMeshProUGUI info;
 
     [SerializeField]
+    Button browseButton;
+
+    [SerializeField]
     Button viewButton;
 
     Texture2D thumbTexture;
@@ -55,6 +58,11 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         infoLayout.flexibleWidth = 0f;
         infoLayout.preferredWidth = 150f;
 
+        browseButton = DebugSkin.CreateButton(transform, "...");
+        browseButton.name = "Browse";
+        EditorLayout.Compact(browseButton.gameObject, 0f);
+        browseButton.GetComponent<LayoutElement>().preferredWidth = 36f;
+
         viewButton = DebugSkin.CreateButton(transform, "View");
         viewButton.name = "View";
         EditorLayout.Compact(viewButton.gameObject, 0f);
@@ -64,6 +72,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     protected override void Awake()
     {
         path.onEndEdit.AddListener(OnPath);
+        browseButton.onClick.AddListener(Browse);
         viewButton.onClick.AddListener(OpenPreview);
     }
 
@@ -75,6 +84,8 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         Destroy(thumbTexture);
         Destroy(previewTexture);
     }
+
+    void Browse() => AssetPicker.Open(this, $"Map: {Source.Label}", AssetKind.Map, OnPath);
 
     void OnPath(string text)
     {
@@ -100,7 +111,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     {
         var map = MapOf(Source.Get());
         path.text = ((IWritable)Source.Get())?.ValueToString() ?? "";
-        path.interactable = !Source.IsReadOnly;
+        path.interactable = browseButton.interactable = !Source.IsReadOnly;
 
         bool loaded = map != null && (map is not MapSODemand demand || demand.IsLoaded);
         info.text = map == null ? "none" : $"{map.Width}x{map.Height} {map.Depth}{(loaded ? "" : ", not loaded")}";
@@ -134,7 +145,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         parser?.GetType().GetProperty("Value")?.GetValue(parser, null) as MapSO;
 
     /// <summary>Samples the map into a texture; greyscale maps are shown as grey.</summary>
-    static Texture2D Render(Texture2D texture, MapSO map, int width, int height)
+    internal static Texture2D Render(Texture2D texture, MapSO map, int width, int height)
     {
         if (texture == null || texture.width != width || texture.height != height)
         {

@@ -34,6 +34,12 @@
       <Private>false</Private>
     </Reference>
 
+    <!-- Kopernicus loads its textures through KSPTextureLoader, so it is always installed. -->
+    <Reference Include="KSPTextureLoader">
+      <HintPath>$(DepSet1)/KSPTextureLoader/Plugins/KSPTextureLoader.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
     <!-- Opt in to HotReloadKSP; see HotReloadSupport. -->
     <AssemblyMetadata Include="HotReload" Value="true" />
 
