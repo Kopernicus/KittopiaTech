@@ -21,6 +21,9 @@ internal sealed class TexturePreview : IDisposable
 
     public Texture2D Texture { get; private set; }
 
+    /// <summary>The path last loaded, so callers can skip reloading it.</summary>
+    public string LoadedPath { get; private set; }
+
     /// <summary>Size and format of the file, e.g. "2048x1024 DXT5", even when sampled down.</summary>
     public string Size { get; private set; } = "";
 
@@ -31,6 +34,7 @@ internal sealed class TexturePreview : IDisposable
     public void Load(string path, AssetKind kind, int sampleWidth = 0)
     {
         Dispose();
+        LoadedPath = path;
         string source;
         try
         {
@@ -53,6 +57,7 @@ internal sealed class TexturePreview : IDisposable
         UnityEngine.Object.Destroy(owned);
         owned = null;
         Texture = null;
+        LoadedPath = null;
         Size = Info = "";
     }
 

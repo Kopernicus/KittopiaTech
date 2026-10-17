@@ -41,7 +41,6 @@ public sealed class TextureFieldEditor : FieldEditor<object>
     TextMeshProUGUI previewInfo;
     readonly TexturePreview loaded = new();
     readonly TexturePreview thumb = new();
-    string thumbPath;
 
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
@@ -120,13 +119,10 @@ public sealed class TextureFieldEditor : FieldEditor<object>
         string size;
         if (value is MaterialTextureParser)
         {
-            if (thumbPath != pathText.text)
-            {
-                thumbPath = pathText.text;
+            if (pathText.text == "")
                 thumb.Dispose();
-                if (thumbPath != "")
-                    thumb.Load(thumbPath, AssetKind.Texture, 64);
-            }
+            else if (thumb.LoadedPath != pathText.text)
+                thumb.Load(pathText.text, AssetKind.Texture, 64);
             texture = thumb.Texture;
             size = thumb.Size;
         }

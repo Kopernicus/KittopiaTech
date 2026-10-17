@@ -15,7 +15,9 @@ Clicking a texture or map path opens a searchable list of textures in GameData, 
 KSPTextureLoader asset bundles, and built into the game (`BUILTIN/`), starting from the
 current value. Click an entry to preview it; double-click or press Select to use it, or
 press Enter to use what you typed. Clicking a texture or map thumbnail opens a larger
-preview.
+preview. Textures and on-demand maps that aren't loaded yet are sampled from their file for
+thumbnails; only the preview window loads the full texture, and on-demand maps stay
+unloaded.
 
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for

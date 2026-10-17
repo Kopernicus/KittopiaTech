@@ -12,8 +12,8 @@ namespace KittopiaTech.UI.Editors;
 
 /// <summary>
 /// All four MapSO parsers: thumbnail, path and size inline, and a larger preview in a pop-out.
-/// Previews are only drawn for maps that are already loaded, so opening the inspector never
-/// pulls an on-demand map into memory.
+/// Loaded maps are drawn from the map. Unloaded on-demand maps are sampled from their file
+/// instead, and only the preview loads the full texture, so the map itself stays unloaded.
 /// </summary>
 [FieldEditor(typeof(MapSOParserBase<>))]
 public sealed class MapSOFieldEditor : FieldEditor<object>
@@ -38,6 +38,8 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     Popout popout;
     Popout picker;
     RawImage preview;
+    readonly TexturePreview thumb = new();
+    readonly TexturePreview full = new();
 
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
@@ -78,6 +80,8 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         base.OnDestroy();
         Destroy(thumbTexture);
         Destroy(previewTexture);
+        thumb.Dispose();
+        full.Dispose();
     }
 
     void Browse()
@@ -114,15 +118,32 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
 
         bool loaded = map != null && (map is not MapSODemand demand || demand.IsLoaded);
         info.text = map == null ? "none" : $"{map.Width}x{map.Height} {map.Depth}{(loaded ? "" : ", not loaded")}";
-        thumbTexture = loaded ? Render(thumbTexture, map, 88, 44) : null;
-        thumbnail.texture = thumbTexture;
-        thumbnail.color = loaded ? Color.white : Color.clear;
-        thumbnailButton.interactable = loaded;
-
-        if (popout != null && loaded)
+        Texture2D shown = null;
+        if (loaded)
+            shown = thumbTexture = Render(thumbTexture, map, 88, 44);
+        else if (map != null)
         {
+            if (thumb.LoadedPath != pathText.text)
+                thumb.Load(pathText.text, AssetKind.Map, 88);
+            shown = thumb.Texture;
+        }
+        thumbnail.texture = shown;
+        thumbnail.color = shown != null ? Color.white : Color.clear;
+        thumbnailButton.interactable = map != null;
+
+        if (popout == null)
+            return;
+        if (loaded)
+        {
+            full.Dispose();
             previewTexture = Render(previewTexture, map, 512, 256);
             preview.texture = previewTexture;
+        }
+        else
+        {
+            if (full.LoadedPath != pathText.text)
+                full.Load(pathText.text, AssetKind.Map);
+            preview.texture = full.Texture;
         }
     }
 
@@ -131,6 +152,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         if (popout != null)
             return;
         popout = Popout.Open(this, pathText.text, new Vector2(540f, 330f));
+        popout.Closed += full.Dispose;
         var image = new GameObject("Preview", typeof(RectTransform));
         image.transform.SetParent(popout.Content, false);
         preview = image.AddComponent<RawImage>();
