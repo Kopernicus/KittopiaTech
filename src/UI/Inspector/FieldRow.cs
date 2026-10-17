@@ -83,6 +83,8 @@ public static class InspectorBuilder
                 UnityEngine.Debug.LogError($"[KittopiaTech] Failed to build a row for {member}: {e}");
             }
         }
+
+        ActionBar.Build(parent, scope, owner);
     }
 
     public static void Clear(Transform parent)

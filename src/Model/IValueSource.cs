@@ -48,4 +48,7 @@ public interface IEditScope
     BodyContext Context { get; }
 
     IValueSource For(ISlot slot, ValueAdapter adapter);
+
+    /// <summary>Tells every source from this scope that the body changed, e.g. after an action ran.</summary>
+    void Invalidate();
 }

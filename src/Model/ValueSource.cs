@@ -58,6 +58,15 @@ public sealed class DirectEditScope(BodyContext context) : IEditScope
 {
     public BodyContext Context { get; } = context;
 
-    public IValueSource For(ISlot slot, ValueAdapter adapter) =>
-        new DirectValueSource(this, slot, adapter);
+    event Action Invalidated;
+
+    // Sources live as long as the scope, which lasts until the window selects another body.
+    public IValueSource For(ISlot slot, ValueAdapter adapter)
+    {
+        var source = new DirectValueSource(this, slot, adapter);
+        Invalidated += source.NotifyChanged;
+        return source;
+    }
+
+    public void Invalidate() => Invalidated?.Invoke();
 }
