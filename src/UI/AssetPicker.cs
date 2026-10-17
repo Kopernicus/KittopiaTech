@@ -204,7 +204,7 @@ public sealed class AssetPicker : MonoBehaviour
     {
         previewBox.SetActive(true);
         previewInfo.transform.parent.gameObject.SetActive(true);
-        loaded.Load(path, kind);
+        loaded.Load(path, kind, 512);
         var texture = loaded.Texture;
         preview.texture = texture;
         preview.color = texture != null ? Color.white : Color.clear;

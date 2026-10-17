@@ -13,7 +13,7 @@ namespace KittopiaTech.UI.Editors;
 /// <summary>
 /// Texture paths: thumbnail, path and size inline, like the MapSO rows. Clicking the path
 /// opens the texture picker and clicking the thumbnail opens a larger preview. Material
-/// textures are only paths, so their thumbnail shows only textures already in memory.
+/// textures are only paths, so their thumbnail is sampled from the file; the preview loads it.
 /// </summary>
 [FieldEditor(typeof(Texture2DParser))]
 [FieldEditor(typeof(MaterialTextureParser))]
@@ -40,6 +40,8 @@ public sealed class TextureFieldEditor : FieldEditor<object>
     AspectRatioFitter previewAspect;
     TextMeshProUGUI previewInfo;
     readonly TexturePreview loaded = new();
+    readonly TexturePreview thumb = new();
+    string thumbPath;
 
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
@@ -79,6 +81,7 @@ public sealed class TextureFieldEditor : FieldEditor<object>
     {
         base.OnDestroy();
         loaded.Dispose();
+        thumb.Dispose();
     }
 
     void Browse()
@@ -113,16 +116,30 @@ public sealed class TextureFieldEditor : FieldEditor<object>
         path.interactable = !Source.IsReadOnly;
 
         // Texture2DParser holds the loaded texture; a material texture is only its path.
-        Texture2D texture = value is Texture2DParser parser ? parser.Value : null;
-        if (value is MaterialTextureParser && pathText.text != "")
-            texture = TexturePreview.Find(pathText.text, out _);
+        Texture2D texture;
+        string size;
+        if (value is MaterialTextureParser)
+        {
+            if (thumbPath != pathText.text)
+            {
+                thumbPath = pathText.text;
+                thumb.Dispose();
+                if (thumbPath != "")
+                    thumb.Load(thumbPath, AssetKind.Texture, 64);
+            }
+            texture = thumb.Texture;
+            size = thumb.Size;
+        }
+        else
+        {
+            texture = (value as Texture2DParser)?.Value;
+            size = texture != null ? $"{texture.width}x{texture.height} {texture.format}" : "";
+        }
 
         thumbnail.texture = texture;
         thumbnail.color = texture != null ? Color.white : Color.clear;
         thumbnailButton.interactable = pathText.text != "";
-        info.text = texture != null ? $"{texture.width}x{texture.height} {texture.format}"
-            : pathText.text == "" ? "none"
-            : "not loaded";
+        info.text = texture != null ? size : pathText.text == "" ? "none" : "not found";
 
         if (popout != null)
             ShowPreview();
