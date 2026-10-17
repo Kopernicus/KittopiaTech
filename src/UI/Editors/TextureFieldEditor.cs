@@ -169,7 +169,8 @@ public sealed class TextureFieldEditor : FieldEditor<object>
     // Loads the path itself, so it previews files the thumbnail can't show without loading.
     void ShowPreview()
     {
-        loaded.Load(pathText.text, AssetKind.Texture);
+        if (loaded.LoadedPath != pathText.text)
+            loaded.Load(pathText.text, AssetKind.Texture);
         var texture = loaded.Texture;
         preview.texture = texture;
         preview.color = texture != null ? Color.white : Color.clear;
