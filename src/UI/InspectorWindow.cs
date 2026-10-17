@@ -24,6 +24,8 @@ public class InspectorWindow : MonoBehaviour
     TextMeshProUGUI exportLabel;
     Button applyButton;
     Button discardButton;
+    Button exportMapsButton;
+    Tooltip exportMapsTooltip;
     EditSession session;
     readonly Dictionary<CelestialBody, TextMeshProUGUI> treeLabels = [];
 
@@ -97,6 +99,9 @@ public class InspectorWindow : MonoBehaviour
         footer.name = "Footer";
         var exportBody = DebugSkin.CreateButton(footer.transform, "Export body", () => Export(patch: false));
         var exportPatch = DebugSkin.CreateButton(footer.transform, "Export patch", () => Export(patch: true));
+        exportMapsButton = DebugSkin.CreateButton(footer.transform, "Export scaled maps", () => BurstPQSExporter.Open(Body));
+        Tooltip.Attach(exportMapsButton.gameObject, "Opens BurstPQS's Texture Exporter for this body");
+        exportMapsTooltip = exportMapsButton.GetComponent<Tooltip>();
         exportLabel = DebugSkin.CreateLabel(footer.transform, "");
         exportLabel.enableWordWrapping = false;
         exportLabel.overflowMode = TextOverflowModes.Ellipsis;
@@ -105,12 +110,12 @@ public class InspectorWindow : MonoBehaviour
         pendingLabel.color = PendingColor;
         discardButton = DebugSkin.CreateButton(footer.transform, "Discard", () => session?.Discard());
         applyButton = DebugSkin.CreateButton(footer.transform, "Apply", () => session?.Apply());
-        foreach (var button in new[] { exportBody, exportPatch, discardButton, applyButton })
+        foreach (var button in new[] { exportBody, exportPatch, exportMapsButton, discardButton, applyButton })
         {
             button.name = button.GetComponentInChildren<TextMeshProUGUI>().text.Replace(" ", "");
             var layout = button.GetComponent<LayoutElement>();
             layout.flexibleWidth = 0f;
-            layout.preferredWidth = 100f;
+            layout.preferredWidth = button == exportMapsButton ? 130f : 100f;
         }
     }
 
@@ -227,6 +232,9 @@ public class InspectorWindow : MonoBehaviour
             InspectorBuilder.BuildMembers(inspectorContent, session, context.Body);
         }
         exportLabel.text = "";
+        string unavailable = BurstPQSExporter.Unavailable(body);
+        exportMapsButton.interactable = unavailable == null;
+        exportMapsTooltip.text = unavailable ?? "Opens BurstPQS's Texture Exporter for this body";
         UpdateFooter();
     }
 }
