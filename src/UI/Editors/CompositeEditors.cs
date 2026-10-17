@@ -176,6 +176,8 @@ public sealed class ColorFieldEditor : CompositeFieldEditor
     [SerializeField]
     Image swatch;
 
+    ColorPicker picker;
+
     protected override Components For(Type valueType) => Channels;
 
     protected override void BuildPrefix(Transform parent)
@@ -186,12 +188,37 @@ public sealed class ColorFieldEditor : CompositeFieldEditor
         var layout = go.AddComponent<LayoutElement>();
         layout.minWidth = layout.preferredWidth = 36f;
         layout.minHeight = layout.preferredHeight = EditorLayout.RowHeight - 4f;
+        go.AddComponent<Button>().targetGraphic = swatch;
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+        swatch.GetComponent<Button>().onClick.AddListener(OpenPicker);
+    }
+
+    protected override void OnUnbind()
+    {
+        base.OnUnbind();
+        picker?.Close();
+    }
+
+    void OpenPicker()
+    {
+        if (picker != null || Source.IsReadOnly)
+            return;
+        var current = Source.Get() is Color color ? color : default;
+        picker = ColorPicker.Open(this, $"Colour: {Source.Label}", current,
+            (c, final) => Source.Set(c, final ? EditPhase.Final : EditPhase.Preview));
     }
 
     public override void Refresh()
     {
+        base.Refresh();
         var c = Source.Get() is Color color ? color : default;
         swatch.color = new Color(c.r, c.g, c.b, 1f);
+        if (picker != null)
+            picker.SetColor(c);
     }
 }
 
