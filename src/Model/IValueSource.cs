@@ -60,4 +60,7 @@ public interface IEditScope
 
     /// <summary>Drops pending edits on objects reachable from <paramref name="root"/>.</summary>
     void DiscardWithin(object root);
+
+    /// <summary>Whether a pending edit sits on <paramref name="node"/> or anywhere beneath it.</summary>
+    bool HasPendingWithin(object node);
 }

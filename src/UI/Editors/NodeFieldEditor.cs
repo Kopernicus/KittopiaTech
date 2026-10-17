@@ -102,6 +102,12 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         Refresh();
     }
 
+    static readonly string PendingHex = ColorUtility.ToHtmlStringRGB(InspectorWindow.PendingOnLightColor);
+
+    /// <summary>Header text in the pending colour when something beneath it is modified.</summary>
+    public static string PendingLabel(string label, bool pending) =>
+        pending ? $"<color=#{PendingHex}>{label}</color>" : label;
+
     /// <summary>A header button over an indented, initially hidden content area.</summary>
     public static void CreateFoldout(
         Transform parent,
@@ -161,8 +167,9 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         string name = value != null ? Structure.SummaryName(value) : null;
         string type = value?.GetType().Name ?? "none";
         string summary = string.IsNullOrEmpty(name) ? "" : $" {name}";
+        string label = PendingLabel(Source.Label + summary, Source.IsModified || Source.Scope.HasPendingWithin(value));
         headerText.text =
-            $"{(expanded && value != null ? "-" : "+")} <b>{Source.Label}{summary}</b>  <color=#a3a7ab>{type}</color>";
+            $"{(expanded && value != null ? "-" : "+")} <b>{label}</b>  <color=#a3a7ab>{type}</color>";
 
         if (!ReferenceEquals(value, built))
         {

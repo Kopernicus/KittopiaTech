@@ -26,6 +26,7 @@ public class InspectorWindow : MonoBehaviour
     Button discardButton;
     EditSession session;
     readonly Dictionary<CelestialBody, TextMeshProUGUI> treeLabels = [];
+    Color treeLabelColor;
 
     public CelestialBody Body { get; private set; }
 
@@ -146,6 +147,9 @@ public class InspectorWindow : MonoBehaviour
 
     public static readonly Color PendingColor = new(1f, 0.71f, 0.28f);
 
+    /// <summary>The pending colour for text on light buttons, where amber is hard to read.</summary>
+    public static readonly Color PendingOnLightColor = new(0.8f, 0.4f, 0f);
+
     void UpdateFooter()
     {
         int count = session?.PendingCount ?? 0;
@@ -160,6 +164,7 @@ public class InspectorWindow : MonoBehaviour
     {
         if (session != null)
             session.Changed -= UpdateFooter;
+        EditSession.AnyChanged -= UpdateTreeEntry;
     }
 
     void BuildTree()
@@ -167,6 +172,17 @@ public class InspectorWindow : MonoBehaviour
         var bodies = PSystemManager.Instance.localBodies;
         foreach (var root in bodies.Where(b => b.referenceBody == null || b.referenceBody == b))
             AddTreeEntry(root, 0);
+
+        foreach (var existing in EditSession.All)
+            UpdateTreeEntry(existing);
+        EditSession.AnyChanged += UpdateTreeEntry;
+    }
+
+    /// <summary>Bodies with pending edits are listed in the pending colour.</summary>
+    void UpdateTreeEntry(EditSession changed)
+    {
+        if (treeLabels.TryGetValue(changed.Context.CelestialBody, out var label))
+            label.color = changed.PendingCount > 0 ? PendingOnLightColor : treeLabelColor;
     }
 
     void AddTreeEntry(CelestialBody body, int depth)
@@ -181,6 +197,7 @@ public class InspectorWindow : MonoBehaviour
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.margin = new Vector4(6f, 0f, 6f, 0f);
         treeLabels[body] = label;
+        treeLabelColor = label.color;
 
         var children = body.orbitingBodies
             .Where(b => b != body)

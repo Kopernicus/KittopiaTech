@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using KittopiaTech.Model;
 using KittopiaTech.UI.Debug;
@@ -13,7 +14,8 @@ namespace KittopiaTech.UI.Editors;
 
 /// <summary>
 /// The fallback for collections: a foldout of item rows with a drag grip and remove button, and
-/// an Add bar. Adding and removing items are structural edits and happen immediately.
+/// an Add bar. Adding and removing items are structural edits and happen immediately; reordering
+/// is staged like any other edit.
 /// </summary>
 [FieldEditor(typeof(Shapes.Collection))]
 public sealed class ListFieldEditor : FieldEditor<object>
@@ -36,8 +38,14 @@ public sealed class ListFieldEditor : FieldEditor<object>
     [SerializeField]
     Button addButton;
 
+    [SerializeField]
+    Button resetButton;
+
     bool expanded;
-    IList list;
+    IList live;
+    IList list; // what's shown: live, or the staged reordered copy
+    IValueSource order;
+    readonly List<IValueSource> itemSources = [];
     int builtCount = -1;
     Type elementType;
     Type[] concreteTypes;
@@ -47,6 +55,10 @@ public sealed class ListFieldEditor : FieldEditor<object>
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
         NodeFieldEditor.CreateFoldout(transform, out header, out headerText, out content);
+        resetButton = DebugSkin.CreateButton(header.transform.parent, "Reset");
+        resetButton.name = "Reset";
+        EditorLayout.Compact(resetButton.gameObject, 0f);
+        resetButton.GetComponent<LayoutElement>().preferredWidth = 48f;
         items = DebugSkin.CreateVerticalLayout(content, 2f).transform;
 
         var bar = DebugSkin.CreateHorizontalLayout(content, 4f, controlWidth: true);
@@ -66,6 +78,7 @@ public sealed class ListFieldEditor : FieldEditor<object>
             Refresh();
         });
         addButton.onClick.AddListener(Add);
+        resetButton.onClick.AddListener(() => order?.Reset());
     }
 
     protected override void OnBind()
@@ -83,6 +96,8 @@ public sealed class ListFieldEditor : FieldEditor<object>
             typePicker.AddOptions(concreteTypes.Select(t => t.Name).ToList());
         }
         addButton.interactable = Structure.CanCreate(elementType);
+        live = list = null;
+        order = null;
         builtCount = -1;
     }
 
@@ -91,15 +106,27 @@ public sealed class ListFieldEditor : FieldEditor<object>
         // Keep the list we built from: getters that return copies would otherwise orphan
         // the item slots (and their pending edits) on every refresh.
         var current = Source.Get() as IList;
-        if (list == null || current == null || current.Count != builtCount)
+        if (live == null || current == null || (!ReferenceEquals(current, live) && current.Count != live.Count))
         {
-            list = current;
+            live = current;
+            order = live != null
+                ? Source.Scope.For(new ListOrderSlot(Source.Slot, live), ValueAdapter.Identity(live.GetType()))
+                : null;
+        }
+
+        var shown = order?.Get() as IList ?? live;
+        if (!ReferenceEquals(shown, list) || list?.Count != builtCount)
+        {
+            list = shown;
             builtCount = -1;
         }
 
         int count = list?.Count ?? 0;
+        bool reordered = order?.IsModified ?? false;
+        string label = NodeFieldEditor.PendingLabel(Source.Label, reordered || Source.Scope.HasPendingWithin(live));
         headerText.text =
-            $"{(expanded ? "-" : "+")} <b>{Source.Label}</b>  <color=#a3a7ab>{elementType?.Name} x{count}</color>";
+            $"{(expanded ? "-" : "+")} <b>{label}</b>  <color=#a3a7ab>{elementType?.Name} x{count}</color>";
+        resetButton.gameObject.SetActive(reordered);
 
         if (expanded && builtCount != count)
             Rebuild();
@@ -109,6 +136,7 @@ public sealed class ListFieldEditor : FieldEditor<object>
     void Rebuild()
     {
         InspectorBuilder.Clear(items);
+        itemSources.Clear();
         builtCount = list?.Count ?? 0;
         for (int i = 0; i < builtCount; i++)
             CreateItem(i);
@@ -128,8 +156,10 @@ public sealed class ListFieldEditor : FieldEditor<object>
             ? MemberShape.Node
             : MemberShape.Value;
         var resolution = FieldEditorRegistry.Resolve(null, elementType, shape);
-        var slot = new ListSlot(list, index, elementType, WriteBack);
-        var fieldRow = FieldRow.Create(row.transform, Source.Scope.For(slot, resolution.Adapter), resolution);
+        var slot = new ListSlot(list, index, elementType, ReferenceEquals(list, live) ? WriteBack : null);
+        var source = Source.Scope.For(slot, resolution.Adapter);
+        itemSources.Add(source);
+        var fieldRow = FieldRow.Create(row.transform, source, resolution);
         fieldRow.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
         ItemButton(row.transform, "Remove", "x", () => Remove(index));
@@ -151,7 +181,7 @@ public sealed class ListFieldEditor : FieldEditor<object>
         if (Source.Slot.CanWrite)
         {
             using (ParseStateScope.For(Source.Scope.Context))
-                Source.Slot.Write(list);
+                Source.Slot.Write(live);
         }
     }
 
@@ -162,6 +192,9 @@ public sealed class ListFieldEditor : FieldEditor<object>
             // Pending edits on items are keyed by index, so they can't survive a reshuffle.
             if (list != null)
                 Source.Scope.DiscardWithin(list);
+            if (live != null && !ReferenceEquals(list, live))
+                Source.Scope.DiscardWithin(live);
+            order?.Reset();
             action();
             WriteBack();
         }
@@ -178,23 +211,50 @@ public sealed class ListFieldEditor : FieldEditor<object>
         var type = concreteTypes != null ? concreteTypes[typePicker.value] : elementType;
         Mutate(() =>
         {
-            list ??= (IList)Activator.CreateInstance(Source.ValueType);
-            list.Add(Structure.Create(Source.Scope.Context, type));
+            live ??= (IList)Activator.CreateInstance(Source.ValueType);
+            live.Add(Structure.Create(Source.Scope.Context, type));
         });
     }
 
-    void Remove(int index) =>
+    void Remove(int index)
+    {
+        var item = list[index];
+        int liveIndex = ReferenceEquals(list, live) ? index : IndexOf(live, item);
         Mutate(() =>
         {
-            Structure.Destroy(Source.Scope.Context, list[index]);
-            list.RemoveAt(index);
+            Structure.Destroy(Source.Scope.Context, item);
+            live.RemoveAt(liveIndex);
         });
+    }
 
-    void Move(int from, int to) =>
-        Mutate(() =>
+    static int IndexOf(IList list, object item)
+    {
+        for (int i = 0; i < list.Count; i++)
         {
-            var item = list[from];
-            list.RemoveAt(from);
-            list.Insert(to, item);
-        });
+            if (ReferenceEquals(list[i], item))
+                return i;
+        }
+        return list.IndexOf(item);
+    }
+
+    /// <summary>Stages a reordered copy, carrying pending item values into it.</summary>
+    void Move(int from, int to)
+    {
+        var copy = live.GetType().GetConstructor(Type.EmptyTypes) != null
+            ? (IList)Activator.CreateInstance(live.GetType())
+            : new ArrayList();
+        for (int i = 0; i < list.Count; i++)
+        {
+            var source = itemSources[i];
+            bool carry = source.IsModified && source is StagedValueSource;
+            copy.Add(carry ? ((StagedValueSource)source).Adapter.Wrap(source.Get()) : list[i]);
+            if (carry)
+                source.Reset();
+        }
+
+        var item = copy[from];
+        copy.RemoveAt(from);
+        copy.Insert(to, item);
+        order.Set(copy);
+    }
 }

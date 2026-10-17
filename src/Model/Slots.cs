@@ -65,3 +65,35 @@ public sealed class ListSlot(IList list, int index, Type elementType, Action wri
     public override int GetHashCode() =>
         System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(List) ^ Index;
 }
+
+/// <summary>
+/// The order of a list's items, so reordering can be staged. The staged value is a reordered
+/// copy; writing it refills the live list in place, since list members are often readonly.
+/// </summary>
+public sealed class ListOrderSlot(ISlot listSlot, IList live) : ISlot
+{
+    public ISlot ListSlot { get; } = listSlot;
+    public object Owner { get; } = live;
+    public MemberSchema Member => ListSlot.Member;
+    public Type DeclaredType => ListSlot.DeclaredType;
+    public string Label => ListSlot.Label;
+    public bool CanWrite => !live.IsReadOnly && !live.IsFixedSize;
+
+    public object Read() => live;
+
+    public void Write(object raw)
+    {
+        if (ReferenceEquals(raw, live))
+            return;
+        var items = new ArrayList((IList)raw);
+        live.Clear();
+        foreach (var item in items)
+            live.Add(item);
+        if (ListSlot.CanWrite)
+            ListSlot.Write(live);
+    }
+
+    public override bool Equals(object obj) => obj is ListOrderSlot other && ListSlot.Equals(other.ListSlot);
+
+    public override int GetHashCode() => ListSlot.GetHashCode() ^ 0x5f3759df;
+}

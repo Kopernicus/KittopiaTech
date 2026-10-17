@@ -26,16 +26,30 @@ public sealed class EditSession : IEditScope
 
     readonly Dictionary<ISlot, Pending> pending = [];
     int nextOrder;
+    HashSet<object> pendingWithin;
 
     public BodyContext Context { get; }
 
     /// <summary>Raised whenever pending edits change or the body changes under them.</summary>
     public event Action Changed;
 
+    /// <summary>Raised after <see cref="Changed"/> on any session, e.g. for the body list.</summary>
+    public static event Action<EditSession> AnyChanged;
+
     public int PendingCount => pending.Count;
     public int ErrorCount => pending.Values.Count(p => p.Error != null);
 
-    EditSession(BodyContext context) => Context = context;
+    EditSession(BodyContext context)
+    {
+        Context = context;
+        Changed += () =>
+        {
+            pendingWithin = null;
+            AnyChanged?.Invoke(this);
+        };
+    }
+
+    public static IEnumerable<EditSession> All => Sessions.Values;
 
     public static EditSession For(BodyContext context)
     {
@@ -75,7 +89,7 @@ public sealed class EditSession : IEditScope
             live = null;
         }
 
-        if (Equals(live, value))
+        if (SameValue(live, value))
             pending.Remove(slot);
         else
         {
@@ -89,6 +103,54 @@ public sealed class EditSession : IEditScope
     {
         if (pending.Remove(slot))
             Changed?.Invoke();
+    }
+
+    /// <summary>Lists compare by their items, so reordering back drops the edit.</summary>
+    static bool SameValue(object a, object b)
+    {
+        if (a is not IList x || b is not IList y)
+            return Equals(a, b);
+        if (x.Count != y.Count)
+            return false;
+        for (int i = 0; i < x.Count; i++)
+        {
+            if (!Equals(x[i], y[i]))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>Whether a pending edit sits on <paramref name="node"/> or anywhere beneath it.</summary>
+    public bool HasPendingWithin(object node)
+    {
+        if (pending.Count == 0 || node == null)
+            return false;
+        pendingWithin ??= FindPendingWithin();
+        return pendingWithin.Contains(node);
+    }
+
+    /// <summary>Every object on a path from the body to an edited object.</summary>
+    HashSet<object> FindPendingWithin()
+    {
+        var owners = new HashSet<object>(pending.Keys.Select(s => s.Owner), ReferenceComparer.Instance);
+        var result = new HashSet<object>(ReferenceComparer.Instance);
+        var seen = new HashSet<object>(ReferenceComparer.Instance);
+        var path = new List<object>();
+
+        void Visit(object node)
+        {
+            if (!seen.Add(node))
+                return;
+            path.Add(node);
+            if (owners.Contains(node))
+                result.UnionWith(path);
+            foreach (var child in Children(node))
+                Visit(child);
+            path.RemoveAt(path.Count - 1);
+        }
+
+        Visit(Context.Body);
+        return result;
     }
 
     public void Discard()
@@ -125,7 +187,11 @@ public sealed class EditSession : IEditScope
         var touched = new HashSet<object>(ReferenceComparer.Instance);
 
         // PreApply members first, as the parser does; otherwise in the order they were made.
-        var ordered = edits.OrderByDescending(p => p.Slot.Member?.PreApply ?? false).ThenBy(p => p.Order);
+        // Reorders go last: edits to items of a reordered list land in its staged copy.
+        var ordered = edits
+            .OrderByDescending(p => p.Slot.Member?.PreApply ?? false)
+            .ThenBy(p => p.Slot is ListOrderSlot)
+            .ThenBy(p => p.Order);
         using (ParseStateScope.For(Context))
         {
             foreach (var edit in ordered)
