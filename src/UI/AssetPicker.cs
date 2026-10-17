@@ -26,7 +26,8 @@ public enum AssetKind
 /// <summary>
 /// A searchable list of asset paths under GameData. Only the top matches get rows: a fixed
 /// pool is refilled as the search changes, so thousands of textures cost nothing to show.
-/// Clicking a row previews it; double-clicking or Select picks it.
+/// Clicking a row previews it; double-clicking or Select picks it. Enter picks the selected
+/// row, or the search text as typed when nothing is selected.
 /// </summary>
 public sealed class AssetPicker : MonoBehaviour
 {
@@ -49,6 +50,7 @@ public sealed class AssetPicker : MonoBehaviour
     string selected;
     float selectedAt;
     Button selectButton;
+    GameObject previewBox;
     RawImage preview;
     AspectRatioFitter previewAspect;
     TextMeshProUGUI previewInfo;
@@ -57,14 +59,21 @@ public sealed class AssetPicker : MonoBehaviour
     TextureHandle<Texture2D> previewHandle;
     Texture2D previewOwned;
 
-    /// <summary>Opens a picker for files with <paramref name="extensions"/>.</summary>
-    public static void Open(Component owner, string title, string[] extensions, Action<string> onPick) =>
-        Open(owner, title, AssetKind.File, extensions, onPick);
+    /// <summary>Opens a picker for files with <paramref name="extensions"/>, searching for <paramref name="initial"/>.</summary>
+    public static Popout Open(Component owner, string title, string[] extensions, string initial, Action<string> onPick) =>
+        Open(owner, title, AssetKind.File, extensions, initial, onPick);
 
-    public static void Open(Component owner, string title, AssetKind kind, Action<string> onPick) =>
-        Open(owner, title, kind, TextureExtensions, onPick);
+    public static Popout Open(Component owner, string title, AssetKind kind, string initial, Action<string> onPick) =>
+        Open(owner, title, kind, TextureExtensions, initial, onPick);
 
-    static void Open(Component owner, string title, AssetKind kind, string[] extensions, Action<string> onPick)
+    static Popout Open(
+        Component owner,
+        string title,
+        AssetKind kind,
+        string[] extensions,
+        string initial,
+        Action<string> onPick
+    )
     {
         var popout = Popout.Open(owner, title, new Vector2(460f, kind == AssetKind.File ? 560f : 720f));
         var picker = popout.gameObject.AddComponent<AssetPicker>();
@@ -73,13 +82,21 @@ public sealed class AssetPicker : MonoBehaviour
         picker.kind = kind;
         picker.entries = Index(extensions, kind);
         picker.Build(popout.Content);
-        picker.Filter("");
+
+        // Start on the current value, previewed if it's in the list.
+        picker.search.text = initial ?? "";
+        picker.Filter(picker.search.text);
+        var current = picker.entries.FirstOrDefault(e => string.Equals(e, initial, StringComparison.OrdinalIgnoreCase));
+        if (current != null)
+            picker.Click(current);
+        return popout;
     }
 
     void Build(Transform content)
     {
         search = DebugSkin.CreateInputField(content);
         search.onValueChanged.AddListener(Filter);
+        search.onSubmit.AddListener(text => Pick(selected ?? text));
 
         DebugSkin.CreateScrollView(content, out var list);
         for (int i = 0; i < MaxRows; i++)
@@ -109,7 +126,8 @@ public sealed class AssetPicker : MonoBehaviour
 
     void BuildPreview(Transform content)
     {
-        var box = new GameObject("Preview", typeof(RectTransform));
+        // Hidden until something is selected, so the list can use the space.
+        var box = previewBox = new GameObject("Preview", typeof(RectTransform));
         box.transform.SetParent(content, false);
         var boxLayout = box.AddComponent<LayoutElement>();
         boxLayout.minHeight = boxLayout.preferredHeight = 160f;
@@ -125,6 +143,8 @@ public sealed class AssetPicker : MonoBehaviour
         previewInfo.enableWordWrapping = false;
         previewInfo.overflowMode = TextOverflowModes.Ellipsis;
         previewInfo.color = new Color(0.64f, 0.65f, 0.67f);
+        box.SetActive(false);
+        previewInfo.transform.parent.gameObject.SetActive(false);
     }
 
     void Filter(string text)
@@ -146,6 +166,18 @@ public sealed class AssetPicker : MonoBehaviour
             rows[i].gameObject.SetActive(false);
 
         status.text = total > rows.Count ? $"Showing {rows.Count} of {total} matches" : $"{total} matches";
+        HighlightSelected();
+    }
+
+    static readonly Color SelectedRowColor = new(0.75f, 0.85f, 1f);
+
+    void HighlightSelected()
+    {
+        foreach (var row in rows)
+        {
+            bool isSelected = row.GetComponentInChildren<TextMeshProUGUI>().text == selected;
+            row.targetGraphic.color = isSelected ? SelectedRowColor : Color.white;
+        }
     }
 
     void Click(string path)
@@ -158,6 +190,7 @@ public sealed class AssetPicker : MonoBehaviour
         selected = path;
         selectedAt = Time.unscaledTime;
         selectButton.interactable = true;
+        HighlightSelected();
         if (preview != null)
             ShowPreview(path);
     }
@@ -181,6 +214,8 @@ public sealed class AssetPicker : MonoBehaviour
     void ShowPreview(string path)
     {
         ReleasePreview();
+        previewBox.SetActive(true);
+        previewInfo.transform.parent.gameObject.SetActive(true);
         Texture2D texture = null;
         string source;
         try

@@ -11,9 +11,10 @@ holding only what differs from the body's Template. Both land in
 Hovering a field's label shows its documentation, if the mod that defines it provides
 any (see [Extending KittopiaTech](extending.md#field-docs)).
 
-Texture and map fields have a `...` button that opens a searchable list of textures in
-GameData, in KSPTextureLoader asset bundles, and built into the game (`BUILTIN/`). Click
-an entry to preview it; double-click or press Select to use it.
+Clicking a texture or map path opens a searchable list of textures in GameData, in
+KSPTextureLoader asset bundles, and built into the game (`BUILTIN/`), starting from the
+current value. Click an entry to preview it; double-click or press Select to use it, or
+press Enter to use what you typed. Clicking a map's thumbnail opens a larger preview.
 
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for

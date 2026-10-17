@@ -96,6 +96,20 @@ public static class EditorLayout
         layout.flexibleWidth = flexibleWidth;
     }
 
+    /// <summary>A button showing a path, left aligned; clicking it opens a picker.</summary>
+    public static Button PathButton(Transform parent, out TextMeshProUGUI text)
+    {
+        var button = DebugSkin.CreateButton(parent, "");
+        button.name = "Path";
+        Compact(button.gameObject);
+        text = button.GetComponentInChildren<TextMeshProUGUI>();
+        text.alignment = TextAlignmentOptions.MidlineLeft;
+        text.enableWordWrapping = false;
+        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.margin = new Vector4(4f, 0f, 4f, 0f);
+        return button;
+    }
+
     public static void MarkInvalid(Selectable selectable, bool invalid)
     {
         var colors = selectable.colors;

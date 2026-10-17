@@ -12,8 +12,8 @@ using UnityEngine.UI;
 namespace KittopiaTech.UI.Editors;
 
 /// <summary>
-/// Values loaded from a file: textures, meshes, models and other assets. A path field with a
-/// searchable GameData picker, and a thumbnail for textures that are already loaded.
+/// Values loaded from a file: textures, meshes, models and other assets. Clicking the path
+/// opens a searchable GameData picker, and a thumbnail for textures that are already loaded.
 /// </summary>
 [FieldEditor(typeof(Texture2DParser))]
 [FieldEditor(typeof(MaterialTextureParser))]
@@ -26,10 +26,12 @@ public sealed class AssetPathFieldEditor : FieldEditor<object>
     RawImage thumbnail;
 
     [SerializeField]
-    TMP_InputField path;
+    Button path;
 
     [SerializeField]
-    Button browseButton;
+    TextMeshProUGUI pathText;
+
+    Popout picker;
 
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
@@ -41,31 +43,28 @@ public sealed class AssetPathFieldEditor : FieldEditor<object>
         layout.minWidth = layout.preferredWidth = EditorLayout.RowHeight;
         layout.minHeight = layout.preferredHeight = EditorLayout.RowHeight;
 
-        path = DebugSkin.CreateInputField(transform);
-        EditorLayout.Compact(path.gameObject);
-
-        browseButton = DebugSkin.CreateButton(transform, "...");
-        browseButton.name = "Browse";
-        EditorLayout.Compact(browseButton.gameObject, 0f);
-        browseButton.GetComponent<LayoutElement>().preferredWidth = 36f;
+        path = EditorLayout.PathButton(transform, out pathText);
     }
 
     protected override void Awake()
     {
-        path.onEndEdit.AddListener(SetPath);
-        browseButton.onClick.AddListener(Browse);
+        path.onClick.AddListener(Browse);
     }
+
+    protected override void OnUnbind() => picker?.Close();
 
     bool IsTexture =>
         Source.ValueType == typeof(Texture2DParser) || Source.ValueType == typeof(MaterialTextureParser);
 
     void Browse()
     {
+        if (picker != null || Source.IsReadOnly)
+            return;
         string title = $"Pick: {Source.Label}";
-        if (IsTexture)
-            AssetPicker.Open(this, title, AssetKind.Texture, SetPath);
-        else
-            AssetPicker.Open(this, title, Source.ValueType == typeof(MuParser) ? [".mu"] : [".obj", ".bin", ".mu", ".unity3d"], SetPath);
+        string[] extensions = Source.ValueType == typeof(MuParser) ? [".mu"] : [".obj", ".bin", ".mu", ".unity3d"];
+        picker = IsTexture
+            ? AssetPicker.Open(this, title, AssetKind.Texture, pathText.text, SetPath)
+            : AssetPicker.Open(this, title, extensions, pathText.text, SetPath);
     }
 
     void SetPath(string text)
@@ -90,8 +89,8 @@ public sealed class AssetPathFieldEditor : FieldEditor<object>
     public override void Refresh()
     {
         var value = Source.Get();
-        path.text = ((IWritable)value)?.ValueToString() ?? "";
-        path.interactable = browseButton.interactable = !Source.IsReadOnly;
+        pathText.text = ((IWritable)value)?.ValueToString() ?? "";
+        path.interactable = !Source.IsReadOnly;
 
         var texture = (value as Texture2DParser)?.Value;
         thumbnail.texture = texture;

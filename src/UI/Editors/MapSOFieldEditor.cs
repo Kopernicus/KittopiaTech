@@ -22,20 +22,21 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     RawImage thumbnail;
 
     [SerializeField]
-    TMP_InputField path;
+    Button path;
+
+    [SerializeField]
+    TextMeshProUGUI pathText;
 
     [SerializeField]
     TextMeshProUGUI info;
 
     [SerializeField]
-    Button browseButton;
-
-    [SerializeField]
-    Button viewButton;
+    Button thumbnailButton;
 
     Texture2D thumbTexture;
     Texture2D previewTexture;
     Popout popout;
+    Popout picker;
     RawImage preview;
 
     protected internal override void BuildPrefab(PrefabContext ctx)
@@ -47,9 +48,10 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         var layout = image.AddComponent<LayoutElement>();
         layout.minWidth = layout.preferredWidth = 44f;
         layout.minHeight = layout.preferredHeight = EditorLayout.RowHeight;
+        thumbnailButton = image.AddComponent<Button>();
+        thumbnailButton.targetGraphic = thumbnail;
 
-        path = DebugSkin.CreateInputField(transform);
-        EditorLayout.Compact(path.gameObject);
+        path = EditorLayout.PathButton(transform, out pathText);
 
         info = DebugSkin.CreateLabel(transform, "");
         info.enableWordWrapping = false;
@@ -57,26 +59,19 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         var infoLayout = info.transform.parent.GetComponent<LayoutElement>();
         infoLayout.flexibleWidth = 0f;
         infoLayout.preferredWidth = 150f;
-
-        browseButton = DebugSkin.CreateButton(transform, "...");
-        browseButton.name = "Browse";
-        EditorLayout.Compact(browseButton.gameObject, 0f);
-        browseButton.GetComponent<LayoutElement>().preferredWidth = 36f;
-
-        viewButton = DebugSkin.CreateButton(transform, "View");
-        viewButton.name = "View";
-        EditorLayout.Compact(viewButton.gameObject, 0f);
-        viewButton.GetComponent<LayoutElement>().preferredWidth = 50f;
     }
 
     protected override void Awake()
     {
-        path.onEndEdit.AddListener(OnPath);
-        browseButton.onClick.AddListener(Browse);
-        viewButton.onClick.AddListener(OpenPreview);
+        path.onClick.AddListener(Browse);
+        thumbnailButton.onClick.AddListener(OpenPreview);
     }
 
-    protected override void OnUnbind() => popout?.Close();
+    protected override void OnUnbind()
+    {
+        popout?.Close();
+        picker?.Close();
+    }
 
     protected override void OnDestroy()
     {
@@ -85,7 +80,11 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         Destroy(previewTexture);
     }
 
-    void Browse() => AssetPicker.Open(this, $"Map: {Source.Label}", AssetKind.Map, OnPath);
+    void Browse()
+    {
+        if (picker == null && !Source.IsReadOnly)
+            picker = AssetPicker.Open(this, $"Pick: {Source.Label}", AssetKind.Map, pathText.text, OnPath);
+    }
 
     void OnPath(string text)
     {
@@ -110,15 +109,15 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
     public override void Refresh()
     {
         var map = MapOf(Source.Get());
-        path.text = ((IWritable)Source.Get())?.ValueToString() ?? "";
-        path.interactable = browseButton.interactable = !Source.IsReadOnly;
+        pathText.text = ((IWritable)Source.Get())?.ValueToString() ?? "";
+        path.interactable = !Source.IsReadOnly;
 
         bool loaded = map != null && (map is not MapSODemand demand || demand.IsLoaded);
         info.text = map == null ? "none" : $"{map.Width}x{map.Height} {map.Depth}{(loaded ? "" : ", not loaded")}";
         thumbTexture = loaded ? Render(thumbTexture, map, 88, 44) : null;
         thumbnail.texture = thumbTexture;
         thumbnail.color = loaded ? Color.white : Color.clear;
-        viewButton.interactable = loaded;
+        thumbnailButton.interactable = loaded;
 
         if (popout != null && loaded)
         {
@@ -137,7 +136,7 @@ public sealed class MapSOFieldEditor : FieldEditor<object>
         preview = image.AddComponent<RawImage>();
         var layout = image.AddComponent<LayoutElement>();
         layout.minHeight = layout.preferredHeight = 256f;
-        DebugSkin.CreateLabel(popout.Content, path.text);
+        DebugSkin.CreateLabel(popout.Content, pathText.text);
         Refresh();
     }
 
