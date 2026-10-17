@@ -221,8 +221,7 @@ public static partial class DebugSkin
         rect.sizeDelta = size;
         rect.anchoredPosition = Vector2.zero;
 
-        go.AddComponent<DialogMouseEnterControlLock>()
-            .Setup(ControlTypes.ALLBUTCAMERAS, $"KittopiaTech_{go.GetInstanceID()}");
+        go.AddComponent<WindowInputLock>();
 
         return parts;
     }
