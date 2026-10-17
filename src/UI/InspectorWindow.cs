@@ -19,6 +19,10 @@ public class InspectorWindow : MonoBehaviour
     TextMeshProUGUI title;
     Transform treeContent;
     Transform inspectorContent;
+    TextMeshProUGUI pendingLabel;
+    Button applyButton;
+    Button discardButton;
+    EditSession session;
     readonly Dictionary<CelestialBody, TextMeshProUGUI> treeLabels = [];
 
     public CelestialBody Body { get; private set; }
@@ -78,7 +82,42 @@ public class InspectorWindow : MonoBehaviour
         inspector.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
         DebugSkin.CreateScrollView(inspector.transform, out inspectorContent);
 
+        BuildFooter(content);
         BuildTree();
+    }
+
+    void BuildFooter(Transform content)
+    {
+        var footer = DebugSkin.CreateHorizontalLayout(content, 6f, controlWidth: true);
+        footer.name = "Footer";
+        pendingLabel = DebugSkin.CreateLabel(footer.transform, "");
+        pendingLabel.color = PendingColor;
+        discardButton = DebugSkin.CreateButton(footer.transform, "Discard", () => session?.Discard());
+        applyButton = DebugSkin.CreateButton(footer.transform, "Apply", () => session?.Apply());
+        foreach (var button in new[] { discardButton, applyButton })
+        {
+            var layout = button.GetComponent<LayoutElement>();
+            layout.flexibleWidth = 0f;
+            layout.preferredWidth = 100f;
+        }
+    }
+
+    public static readonly Color PendingColor = new(1f, 0.71f, 0.28f);
+
+    void UpdateFooter()
+    {
+        int count = session?.PendingCount ?? 0;
+        int errors = session?.ErrorCount ?? 0;
+        pendingLabel.text = count == 0
+            ? ""
+            : errors == 0 ? $"{count} pending" : $"{count} pending, {errors} failed";
+        applyButton.interactable = discardButton.interactable = count > 0;
+    }
+
+    void OnDestroy()
+    {
+        if (session != null)
+            session.Changed -= UpdateFooter;
     }
 
     void BuildTree()
@@ -118,10 +157,17 @@ public class InspectorWindow : MonoBehaviour
         title.text = body != null ? $"Kittopia · {name}" : "Kittopia";
 
         InspectorBuilder.Clear(inspectorContent);
-        if (body == null)
-            return;
+        if (session != null)
+            session.Changed -= UpdateFooter;
+        session = null;
 
-        var context = BodyContext.Get(body);
-        InspectorBuilder.BuildMembers(inspectorContent, new DirectEditScope(context), context.Body);
+        if (body != null)
+        {
+            var context = BodyContext.Get(body);
+            session = EditSession.For(context);
+            session.Changed += UpdateFooter;
+            InspectorBuilder.BuildMembers(inspectorContent, session, context.Body);
+        }
+        UpdateFooter();
     }
 }

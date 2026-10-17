@@ -17,6 +17,7 @@ public sealed class ChildValueSource(
     public Type ValueType { get; } = valueType;
     public string Label { get; } = label;
     public IEditScope Scope => parent.Scope;
+    public ISlot Slot => parent.Slot;
     public MemberSchema Member => parent.Member;
     public bool IsReadOnly => parent.IsReadOnly;
     public bool IsModified => parent.IsModified;

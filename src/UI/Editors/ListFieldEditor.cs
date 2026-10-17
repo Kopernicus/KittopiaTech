@@ -88,10 +88,14 @@ public sealed class ListFieldEditor : FieldEditor<object>
 
     public override void Refresh()
     {
+        // Keep the list we built from: getters that return copies would otherwise orphan
+        // the item slots (and their pending edits) on every refresh.
         var current = Source.Get() as IList;
-        if (!ReferenceEquals(current, list))
+        if (list == null || current == null || current.Count != builtCount)
+        {
+            list = current;
             builtCount = -1;
-        list = current;
+        }
 
         int count = list?.Count ?? 0;
         headerText.text =
@@ -141,14 +145,20 @@ public sealed class ListFieldEditor : FieldEditor<object>
     /// <summary>Some getters return a copy, so push the list back through the setter if there is one.</summary>
     void WriteBack()
     {
-        if (Source.Member is { CanWrite: true } && !Source.IsReadOnly)
-            Source.Set(list);
+        if (Source.Slot.CanWrite)
+        {
+            using (ParseStateScope.For(Source.Scope.Context))
+                Source.Slot.Write(list);
+        }
     }
 
     void Mutate(Action action)
     {
         try
         {
+            // Pending edits on items are keyed by index, so they can't survive a reshuffle.
+            if (list != null)
+                Source.Scope.DiscardWithin(list);
             action();
             WriteBack();
         }
@@ -157,7 +167,7 @@ public sealed class ListFieldEditor : FieldEditor<object>
             UnityEngine.Debug.LogError($"[KittopiaTech] Failed to change {Source.Label}: {e}");
         }
         builtCount = -1;
-        Refresh();
+        Source.Scope.Invalidate();
     }
 
     void Add()

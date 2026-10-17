@@ -12,8 +12,14 @@ public sealed class FieldRow : MonoBehaviour
 {
     public const float LabelWidth = 160f;
 
+    static readonly Color ErrorColor = new(0.95f, 0.45f, 0.42f);
+
     public FieldEditor Editor { get; private set; }
     public IValueSource Source { get; private set; }
+
+    TextMeshProUGUI label;
+    Color labelColor;
+    Button resetButton;
 
     public static FieldRow Create(Transform parent, IValueSource source, FieldEditorRegistry.Resolution resolution)
     {
@@ -39,12 +45,37 @@ public sealed class FieldRow : MonoBehaviour
         {
             var hlg = EditorLayout.Row(go.transform, 6f);
             hlg.padding = new RectOffset(4, 0, 0, 0);
-            var label = CreateLabel(go.transform, source);
-            label.transform.parent.SetAsFirstSibling();
+            row.label = CreateLabel(go.transform, source);
+            row.label.transform.parent.SetAsFirstSibling();
+            row.labelColor = row.label.color;
+
+            row.resetButton = DebugSkin.CreateButton(go.transform, "Reset", source.Reset);
+            EditorLayout.Compact(row.resetButton.gameObject, 0f);
+            row.resetButton.GetComponent<LayoutElement>().preferredWidth = 48f;
+
+            source.Changed += row.UpdateState;
+            row.UpdateState();
         }
 
         editor.Bind(source);
         return row;
+    }
+
+    /// <summary>Amber for a pending edit, red when applying it failed.</summary>
+    void UpdateState()
+    {
+        if (this == null || Source == null)
+            return;
+
+        bool modified = Source.IsModified;
+        label.color = Source.Error != null ? ErrorColor : modified ? InspectorWindow.PendingColor : labelColor;
+        resetButton.gameObject.SetActive(modified);
+    }
+
+    void OnDestroy()
+    {
+        if (label != null && Source != null)
+            Source.Changed -= UpdateState;
     }
 
     static TextMeshProUGUI CreateLabel(Transform parent, IValueSource source)

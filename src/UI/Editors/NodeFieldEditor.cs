@@ -76,7 +76,7 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         var type = concreteTypes != null ? concreteTypes[typePicker.value] : Source.ValueType;
         try
         {
-            Source.Set(Structure.Create(Source.Scope.Context, type));
+            WriteNow(Structure.Create(Source.Scope.Context, type));
             expanded = true;
         }
         catch (Exception e)
@@ -90,8 +90,10 @@ public sealed class NodeFieldEditor : FieldEditor<object>
     {
         try
         {
-            Structure.Destroy(Source.Scope.Context, Source.Get());
-            Source.Set(null);
+            var value = Source.Get();
+            Source.Scope.DiscardWithin(value);
+            Structure.Destroy(Source.Scope.Context, value);
+            WriteNow(null);
         }
         catch (Exception e)
         {
@@ -130,6 +132,14 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         body.padding = new RectOffset(14, 0, 0, 4);
         body.gameObject.SetActive(false);
         content = body.transform;
+    }
+
+    /// <summary>Structural edits skip staging and write straight to the member.</summary>
+    void WriteNow(object value)
+    {
+        using (ParseStateScope.For(Source.Scope.Context))
+            Source.Slot.Write(value);
+        Source.Scope.Invalidate();
     }
 
     protected override void Awake()

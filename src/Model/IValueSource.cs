@@ -20,6 +20,9 @@ public interface IValueSource
     /// <summary>Creates sources for values nested inside this one.</summary>
     IEditScope Scope { get; }
 
+    /// <summary>Where the value lives. Structural edits write here directly, bypassing staging.</summary>
+    ISlot Slot { get; }
+
     /// <summary>The member being edited; null for list items.</summary>
     MemberSchema Member { get; }
 
@@ -42,7 +45,7 @@ public interface IValueSource
     event Action Changed;
 }
 
-/// <summary>Hands out value sources for one body; the edit session implements this once edits are staged.</summary>
+/// <summary>Hands out value sources for one body. Implemented by <see cref="EditSession"/>.</summary>
 public interface IEditScope
 {
     BodyContext Context { get; }
@@ -51,4 +54,10 @@ public interface IEditScope
 
     /// <summary>Tells every source from this scope that the body changed, e.g. after an action ran.</summary>
     void Invalidate();
+
+    /// <summary>Applies pending edits on objects reachable from <paramref name="root"/>.</summary>
+    void ApplyWithin(object root);
+
+    /// <summary>Drops pending edits on objects reachable from <paramref name="root"/>.</summary>
+    void DiscardWithin(object root);
 }

@@ -95,6 +95,8 @@ public sealed class ActionButton : MonoBehaviour
 
         try
         {
+            // Actions act on the live body, so apply what's pending beneath them first.
+            scope.ApplyWithin(owner);
             object result;
             using (ParseStateScope.For(scope.Context))
                 result = action.Method.Invoke(owner, null);
