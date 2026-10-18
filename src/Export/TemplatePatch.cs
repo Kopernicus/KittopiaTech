@@ -45,8 +45,7 @@ public static class TemplatePatch
         var current = ConfigExporter.ExportBody(context);
         var patch = new ConfigNode("patch");
         var removedMods = new List<string>();
-        var notes = new List<string>();
-        Diff(baseline, current, patch, removedMods, notes, "");
+        Diff(baseline, current, patch, removedMods, "");
 
         if (removedMods.Count > 0)
         {
@@ -55,8 +54,6 @@ public static class TemplatePatch
             var all = (existing?.Split(',').Select(s => s.Trim()) ?? []).Concat(removedMods).Distinct();
             patch.AddNode("%Template").AddValue("%removePQSMods", string.Join(", ", all.ToArray()));
         }
-        if (notes.Count > 0)
-            warning = string.Join("\n", notes.Distinct().ToArray());
         return patch;
     }
 
@@ -139,7 +136,7 @@ public static class TemplatePatch
     }
 
     /// <summary>Writes into <paramref name="patch"/> the operations that turn baseline into current.</summary>
-    static void Diff(ConfigNode baseline, ConfigNode current, ConfigNode patch, List<string> removedMods, List<string> notes, string path)
+    static void Diff(ConfigNode baseline, ConfigNode current, ConfigNode patch, List<string> removedMods, string path)
     {
         foreach (ConfigNode.Value value in current.values)
         {
@@ -158,13 +155,13 @@ public static class TemplatePatch
             var theirs = baseline.GetNodes(name);
             bool isList = mine.Length > 1 || theirs.Length > 1 || mine.Concat(theirs).Any(n => n.HasValue("name"));
             if (!isList)
-                DiffNode(theirs.FirstOrDefault(), mine.FirstOrDefault(), name, patch, removedMods, notes, path + "/" + name);
+                DiffNode(theirs.FirstOrDefault(), mine.FirstOrDefault(), name, patch, removedMods, path + "/" + name);
             else
-                DiffList(theirs, mine, name, patch, removedMods, notes, path);
+                DiffList(theirs, mine, name, patch, removedMods, path);
         }
     }
 
-    static void DiffNode(ConfigNode baseline, ConfigNode current, string name, ConfigNode patch, List<string> removedMods, List<string> notes, string path)
+    static void DiffNode(ConfigNode baseline, ConfigNode current, string name, ConfigNode patch, List<string> removedMods, string path)
     {
         if (current == null)
         {
@@ -188,13 +185,13 @@ public static class TemplatePatch
         }
 
         var child = new ConfigNode("%" + name);
-        Diff(baseline, current, child, removedMods, notes, path);
+        Diff(baseline, current, child, removedMods, path);
         if (child.CountValues > 0 || child.CountNodes > 0)
             patch.AddNode(child);
     }
 
     /// <summary>List items pair by name, or by position among unnamed items of the same type.</summary>
-    static void DiffList(ConfigNode[] baseline, ConfigNode[] current, string type, ConfigNode patch, List<string> removedMods, List<string> notes, string path)
+    static void DiffList(ConfigNode[] baseline, ConfigNode[] current, string type, ConfigNode patch, List<string> removedMods, string path)
     {
         var unmatched = baseline.ToList();
         int unnamedIndex = 0;
@@ -212,10 +209,8 @@ public static class TemplatePatch
             unmatched.Remove(match);
 
             string selector = name != null ? $"[{name}]" : $",{unnamedIndex++}";
-            if (name == null)
-                notes.Add($"{path}/{type}: unnamed items are matched by position");
             var child = new ConfigNode($"%{type}{selector}");
-            Diff(match, item, child, removedMods, notes, path + "/" + type);
+            Diff(match, item, child, removedMods, path + "/" + type);
             if (child.CountValues > 0 || child.CountNodes > 0)
             {
                 if (name != null)
