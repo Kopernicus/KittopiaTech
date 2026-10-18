@@ -92,13 +92,22 @@ public static class CurveGraph
 
         if (keys.Count > 0)
         {
-            int previous = Y(curve.Evaluate(view.T0));
+            // Sampled once per column and joined into an anti-aliased polyline.
+            var coverage = new float[width * height];
+            float previous = 0f;
             for (int x = 0; x < width; x++)
             {
-                int y = Y(curve.Evaluate(Mathf.Lerp(view.T0, view.T1, x / (width - 1f))));
-                for (int yy = Math.Min(y, previous); yy <= Math.Max(y, previous); yy++)
-                    Set(pixels, width, height, x, yy, Line);
+                float y = view.ToNormalized(0f, curve.Evaluate(Mathf.Lerp(view.T0, view.T1, x / (width - 1f)))).y * (height - 1);
+                // Far off the graph only the direction matters, and squaring it can overflow.
+                y = Mathf.Clamp(y, -height, 2f * height);
+                if (x > 0)
+                    Segment(coverage, width, height, x - 1, previous, x, y);
                 previous = y;
+            }
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                if (coverage[i] > 0f)
+                    pixels[i] = Color32.Lerp(pixels[i], Line, coverage[i]);
             }
 
             for (int i = 0; i < keys.Count; i++)
@@ -137,6 +146,30 @@ public static class CurveGraph
     {
         if (x >= 0 && x < width && y >= 0 && y < height)
             pixels[y * width + x] = color;
+    }
+
+    /// <summary>
+    /// Covers the pixels within a pixel of a one-pixel-wide segment, by how close their centre is
+    /// to it, as Wu's lines do. Overlapping segments keep the higher coverage, so joints don't darken.
+    /// </summary>
+    static void Segment(float[] coverage, int width, int height, float x0, float y0, float x1, float y1)
+    {
+        if (float.IsNaN(y0) || float.IsNaN(y1))
+            return;
+
+        int xMin = Math.Max(0, Mathf.FloorToInt(Mathf.Min(x0, x1))), xMax = Math.Min(width - 1, Mathf.CeilToInt(Mathf.Max(x0, x1)));
+        int yMin = Math.Max(0, Mathf.FloorToInt(Mathf.Min(y0, y1))), yMax = Math.Min(height - 1, Mathf.CeilToInt(Mathf.Max(y0, y1)));
+        float dx = x1 - x0, dy = y1 - y0, length = dx * dx + dy * dy;
+        for (int y = yMin; y <= yMax; y++)
+        for (int x = xMin; x <= xMax; x++)
+        {
+            float t = length > 0f ? Mathf.Clamp01(((x - x0) * dx + (y - y0) * dy) / length) : 0f;
+            float ex = x - (x0 + t * dx), ey = y - (y0 + t * dy);
+            float c = 1f - Mathf.Sqrt(ex * ex + ey * ey);
+            int i = y * width + x;
+            if (c > coverage[i])
+                coverage[i] = c;
+        }
     }
 
     static void VLine(Color32[] pixels, int width, int height, int x, Color32 color)
