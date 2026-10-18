@@ -19,6 +19,8 @@ public sealed class KeywordSlot(MaterialLoader loader, string keyword) : ISlot
 
     public void Write(object raw) => Loader.SetKeyword(Keyword, (bool)raw);
 
+    public ISlot Rebind(Func<object, object> map) => new KeywordSlot((MaterialLoader)map(Loader), Keyword);
+
     public override bool Equals(object obj) =>
         obj is KeywordSlot other && ReferenceEquals(Loader, other.Loader) && Keyword == other.Keyword;
 

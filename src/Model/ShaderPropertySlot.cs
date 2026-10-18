@@ -112,6 +112,9 @@ public sealed class ShaderPropertySlot(
         }
     }
 
+    public ISlot Rebind(Func<object, object> map) =>
+        new ShaderPropertySlot((MaterialLoader)map(Loader), Name, PropertyType, Drawer);
+
     public override bool Equals(object obj) =>
         obj is ShaderPropertySlot other && ReferenceEquals(Loader, other.Loader) && Name == other.Name;
 

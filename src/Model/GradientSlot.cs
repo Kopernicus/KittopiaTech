@@ -150,6 +150,9 @@ public sealed class GradientSlot(MaterialLoader loader, MemberSchema texture, Me
         }
     }
 
+    public ISlot Rebind(Func<object, object> map) =>
+        new GradientSlot((MaterialLoader)map(Loader), Member, Gradient, Property);
+
     public override bool Equals(object obj) =>
         obj is GradientSlot other && ReferenceEquals(Loader, other.Loader) && Property == other.Property;
 

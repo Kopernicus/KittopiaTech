@@ -63,9 +63,10 @@ public interface IEditScope
 
     /// <summary>
     /// Records an object a structural edit just created, so it shows as pending until Apply
-    /// runs its hooks. Discard calls <paramref name="undo"/> to remove it again.
+    /// runs its hooks. Discard calls <paramref name="undo"/> with the object to remove it again;
+    /// History may call it with a rebuilt copy.
     /// </summary>
-    void MarkCreated(object created, string label, Action undo);
+    void MarkCreated(object created, string label, Action<object> undo);
 
     /// <summary>Whether <paramref name="value"/> was created since the last Apply.</summary>
     bool IsCreated(object value);

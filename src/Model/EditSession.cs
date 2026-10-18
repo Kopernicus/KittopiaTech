@@ -71,7 +71,7 @@ public sealed class EditSession : IEditScope
         Changed?.Invoke();
     }
 
-    public void MarkCreated(object created, string label, Action undo)
+    public void MarkCreated(object created, string label, Action<object> undo)
     {
         var slot = new CreatedSlot(created, label, undo);
         pending[slot] = new Pending

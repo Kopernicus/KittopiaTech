@@ -231,10 +231,10 @@ public sealed class ListFieldEditor : FieldEditor<object>
         if (MemberSchema.GetConfigType(created.GetType()) != ConfigType.Node)
             return;
         var (list, slot, context) = (live, Source.Slot, Source.Scope.Context);
-        Source.Scope.MarkCreated(created, $"{Source.Label} item", () =>
+        Source.Scope.MarkCreated(created, $"{Source.Label} item", item =>
         {
-            Structure.Destroy(context, created);
-            int index = IndexOf(list, created);
+            Structure.Destroy(context, item);
+            int index = IndexOf(list, item);
             if (index >= 0)
                 list.RemoveAt(index);
             if (slot.CanWrite)

@@ -16,6 +16,13 @@ public interface ISlot
 
     object Read();
     void Write(object raw);
+
+    /// <summary>
+    /// The same slot on the objects <paramref name="map"/> gives for the ones this slot holds,
+    /// for history entries whose objects were removed and rebuilt. The map returns objects it
+    /// doesn't replace unchanged.
+    /// </summary>
+    ISlot Rebind(Func<object, object> map);
 }
 
 public sealed class MemberSlot(object owner, MemberSchema member) : ISlot
@@ -29,6 +36,8 @@ public sealed class MemberSlot(object owner, MemberSchema member) : ISlot
     public object Read() => Member.CanRead ? Member.GetValue(Owner) : null;
 
     public void Write(object raw) => Member.SetValue(Owner, raw);
+
+    public ISlot Rebind(Func<object, object> map) => new MemberSlot(map(Owner), Member);
 
     public override bool Equals(object obj) =>
         obj is MemberSlot other && ReferenceEquals(Owner, other.Owner) && Member == other.Member;
@@ -59,6 +68,12 @@ public sealed class ListSlot(IList list, int index, Type elementType, Action wri
         writeBack?.Invoke();
     }
 
+    // The write-back pushes the old list through its owner's setter, so a new list goes without.
+    public ISlot Rebind(Func<object, object> map) =>
+        map(List) is IList list && !ReferenceEquals(list, List)
+            ? new ListSlot(list, Index, DeclaredType)
+            : this;
+
     public override bool Equals(object obj) =>
         obj is ListSlot other && ReferenceEquals(List, other.List) && Index == other.Index;
 
@@ -68,12 +83,12 @@ public sealed class ListSlot(IList list, int index, Type elementType, Action wri
 
 /// <summary>
 /// Marks an object a structural edit created. Writing it does nothing: the object is already
-/// live, and Apply only needs it as the owner whose hooks to run.
+/// live, and Apply only needs it as the owner whose hooks to run. Undoing removes the object
+/// again; it's passed the object, which may since have been rebuilt.
 /// </summary>
-public sealed class CreatedSlot(object created, string label, Action undo) : ISlot
+public sealed class CreatedSlot(object created, string label, Action<object> undo) : ISlot
 {
     public object Owner { get; } = created;
-    public Action Undo { get; } = undo;
     public string Label { get; } = label;
     public MemberSchema Member => null;
     public Type DeclaredType => typeof(object);
@@ -82,6 +97,10 @@ public sealed class CreatedSlot(object created, string label, Action undo) : ISl
     public object Read() => null;
 
     public void Write(object raw) { }
+
+    public void Undo() => undo(Owner);
+
+    public ISlot Rebind(Func<object, object> map) => new CreatedSlot(map(Owner), Label, undo);
 
     public override bool Equals(object obj) => obj is CreatedSlot other && ReferenceEquals(Owner, other.Owner);
 
@@ -114,6 +133,8 @@ public sealed class ListOrderSlot(ISlot listSlot, IList live) : ISlot
         if (ListSlot.CanWrite)
             ListSlot.Write(live);
     }
+
+    public ISlot Rebind(Func<object, object> map) => new ListOrderSlot(ListSlot.Rebind(map), (IList)map(live));
 
     public override bool Equals(object obj) => obj is ListOrderSlot other && ListSlot.Equals(other.ListSlot);
 

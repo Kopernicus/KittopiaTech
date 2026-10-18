@@ -80,9 +80,9 @@ public sealed class NodeFieldEditor : FieldEditor<object>
             WriteNow(created);
             expanded = true;
             var (slot, context) = (Source.Slot, Source.Scope.Context);
-            Source.Scope.MarkCreated(created, Source.Label, () =>
+            Source.Scope.MarkCreated(created, Source.Label, value =>
             {
-                Structure.Destroy(context, created);
+                Structure.Destroy(context, value);
                 slot.Write(null);
             });
         }
