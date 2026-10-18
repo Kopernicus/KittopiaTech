@@ -39,6 +39,9 @@ public static class ApplyHooks
 
     static List<Hook> hooks;
 
+    /// <summary>Rescans on next use, after another mod (which may declare hooks) was hot-reloaded.</summary>
+    internal static void Reset() => hooks = null;
+
     static List<Hook> Hooks =>
         hooks ??= AssemblyLoader
             .loadedAssemblies.SelectMany(a => SafeTypes(a.assembly))

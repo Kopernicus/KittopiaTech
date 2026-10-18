@@ -44,6 +44,14 @@ public sealed class TypeSchema
     public bool CanConstruct => constructor != null;
     public bool IsAbstract => Type.IsAbstract || Type.IsInterface;
 
+    /// <summary>Drops what was cached about <paramref name="assembly"/>'s types, after another mod was hot-reloaded.</summary>
+    internal static void Forget(Assembly assembly)
+    {
+        foreach (var type in Cache.Keys.Where(t => HotReloadSupport.Uses(t, assembly)).ToList())
+            Cache.Remove(type);
+        ConcreteTypeCache.Clear();
+    }
+
     public static TypeSchema Get(Type type)
     {
         if (!Cache.TryGetValue(type, out var schema))

@@ -45,6 +45,19 @@ public static class FieldEditorRegistry
         }
     }
 
+    /// <summary>Rescans editors on next use, after another mod (which may define some) was hot-reloaded.</summary>
+    internal static void Forget(Assembly assembly)
+    {
+        byTarget = null;
+        Resolved.Clear();
+        foreach (var type in Prefabs.Keys.Where(t => t.Assembly == assembly).ToList())
+        {
+            if (Prefabs[type] != null)
+                Object.Destroy(Prefabs[type].gameObject);
+            Prefabs.Remove(type);
+        }
+    }
+
     static void EnsureScanned()
     {
         if (byTarget != null)

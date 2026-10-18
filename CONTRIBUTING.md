@@ -57,3 +57,10 @@ are skipped.
 KittopiaTech supports [HotReloadKSP](https://github.com/Phantomical/HotReloadKSP): rebuild
 and reload the DLL without restarting the game. Open windows are reopened after a reload;
 pending edits are not carried over.
+
+Reloading another mod, such as one adding PQSMods, also works. KittopiaTech rescans that
+mod's types, editors, apply hooks and config writers. Any body whose loaders include the
+mod's types gets its inspector rebuilt from the swapped components, without its pending edits
+or history. This needs a HotReloadKSP newer than v0.1.4, which calls a static
+`OnHotReload(Assembly, Assembly)` on the other loaded mods after a reload. For Kopernicus to
+wrap the reloaded types, it also needs a build whose parser resets its type caches there.

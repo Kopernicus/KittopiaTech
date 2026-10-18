@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using KittopiaTech.Export;
+using KittopiaTech.Model;
 using KittopiaTech.UI;
 using KittopiaTech.UI.Debug;
+using KittopiaTech.UI.Editors;
 using UnityEngine;
 
 namespace KittopiaTech;
@@ -52,6 +56,57 @@ internal static class HotReloadSupport
         }
     }
 
+    /// <summary>
+    /// Called by HotReloadKSP on every other loaded assembly after it reloads one, e.g. a mod
+    /// with its own PQSMods. Its components are swapped for the new types, but plain objects
+    /// such as Kopernicus loaders keep the old types and point at the destroyed components, so
+    /// bodies holding any are wrapped afresh. Their pending edits and history go with them.
+    /// </summary>
+    static void OnHotReload(Assembly oldAssembly, Assembly newAssembly)
+    {
+        TypeSchema.Forget(oldAssembly);
+        FieldEditorRegistry.Forget(oldAssembly);
+        ApplyHooks.Reset();
+        ConfigExporter.Reset();
+
+        var stale = BodyContext.All.Where(c => Holds(c.Body, oldAssembly)).ToList();
+        foreach (var context in stale)
+        {
+            Debug.LogWarning(
+                $"[KittopiaTech] {context.CelestialBody.name} uses {oldAssembly.GetName().Name}, which was reloaded; "
+                    + "rebuilding its inspector without its pending edits or history.");
+            EditSession.Forget(context);
+            BodyContext.Forget(context.CelestialBody);
+        }
+
+        // Not straight away: the old components are only destroyed, and the new ones enabled,
+        // after this returns.
+        InspectorWindow.RebuildShowing(stale.Select(c => c.CelestialBody).ToList());
+    }
+
+    /// <summary>Whether a node or list item beneath <paramref name="root"/> has a type from <paramref name="assembly"/>.</summary>
+    static bool Holds(object root, Assembly assembly)
+    {
+        var seen = new HashSet<object>(ReferenceComparer.Instance);
+        var pending = new Stack<object>();
+        pending.Push(root);
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            if (node == null || !seen.Add(node))
+                continue;
+            if (Uses(node.GetType(), assembly))
+                return true;
+            foreach (var child in EditSession.Children(node))
+                pending.Push(child);
+        }
+        return false;
+    }
+
+    /// <summary>Whether <paramref name="type"/>, or a type argument of it, is from <paramref name="assembly"/>.</summary>
+    internal static bool Uses(Type type, Assembly assembly) =>
+        type.Assembly == assembly || (type.IsGenericType && type.GetGenericArguments().Any(t => Uses(t, assembly)));
+
     /// <summary>Reads the old windows by reflection, so this works across any two versions.</summary>
     static List<WindowState> CaptureWindows(Assembly oldAssembly)
     {
@@ -90,7 +145,7 @@ internal static class HotReloadSupport
         foreach (var go in owned)
         {
             if (go != null)
-                Object.DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(go);
         }
     }
 }

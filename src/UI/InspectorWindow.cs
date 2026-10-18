@@ -65,6 +65,26 @@ public class InspectorWindow : MonoBehaviour
         return window;
     }
 
+    /// <summary>
+    /// Rebuilds the windows showing any of <paramref name="bodies"/> on their next update, once
+    /// a hot reload has finished swapping components. Hidden windows rebuild when next shown.
+    /// </summary>
+    public static void RebuildShowing(ICollection<CelestialBody> bodies)
+    {
+        foreach (var window in Windows.Where(w => w != null && bodies.Contains(w.Body)))
+            window.rebuild = true;
+    }
+
+    bool rebuild;
+
+    void Update()
+    {
+        if (!rebuild)
+            return;
+        rebuild = false;
+        Select(Body);
+    }
+
     public void Close()
     {
         Windows.Remove(this);

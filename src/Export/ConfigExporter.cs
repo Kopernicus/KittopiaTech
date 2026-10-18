@@ -35,6 +35,9 @@ public static class ConfigExporter
 {
     static Dictionary<Type, IConfigWriter> writers;
 
+    /// <summary>Rescans on next use, after another mod (which may define writers) was hot-reloaded.</summary>
+    internal static void Reset() => writers = null;
+
     public static ConfigNode ExportBody(BodyContext context)
     {
         var node = new ConfigNode("Body");

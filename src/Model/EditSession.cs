@@ -56,6 +56,9 @@ public sealed class EditSession : IEditScope
 
     public static IEnumerable<EditSession> All => Sessions.Values;
 
+    /// <summary>Drops the body's session, with its pending edits and history.</summary>
+    internal static void Forget(BodyContext context) => Sessions.Remove(context);
+
     public static EditSession For(BodyContext context)
     {
         if (!Sessions.TryGetValue(context, out var session))
