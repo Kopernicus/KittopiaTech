@@ -94,8 +94,28 @@ public abstract class FieldEditor : MonoBehaviour
 
     void OnSourceChanged()
     {
-        if (Source != null)
+        if (Source == null)
+            return;
+
+        // Unity skips OnDestroy for objects that were never active (e.g. rows hidden on their
+        // first Refresh), so a destroyed editor can still be subscribed. Its widgets are gone
+        // too, so skip OnUnbind.
+        if (this == null)
+        {
+            Source.Changed -= OnSourceChanged;
+            Source = null;
+            return;
+        }
+
+        // One broken editor mustn't stop the session's other listeners.
+        try
+        {
             Refresh();
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[KittopiaTech] Failed to refresh {Source.Label}: {e}");
+        }
     }
 
     protected virtual void OnDestroy() => Unbind();
