@@ -58,16 +58,20 @@ public sealed class AssetPicker : MonoBehaviour
 
     /// <summary>Opens a picker for files with <paramref name="extensions"/>, searching for <paramref name="initial"/>.</summary>
     public static Popout Open(Component owner, string title, string[] extensions, string initial, Action<string> onPick) =>
-        Open(owner, title, AssetKind.File, extensions, initial, onPick);
+        Open(owner, title, AssetKind.File, Index(extensions, AssetKind.File), initial, onPick);
 
     public static Popout Open(Component owner, string title, AssetKind kind, string initial, Action<string> onPick) =>
-        Open(owner, title, kind, TextureExtensions, initial, onPick);
+        Open(owner, title, kind, Index(TextureExtensions, kind), initial, onPick);
+
+    /// <summary>Opens a picker over a list of names that aren't files, such as bodies or shaders.</summary>
+    public static Popout OpenList(Component owner, string title, string[] entries, string initial, Action<string> onPick) =>
+        Open(owner, title, AssetKind.File, entries, initial, onPick);
 
     static Popout Open(
         Component owner,
         string title,
         AssetKind kind,
-        string[] extensions,
+        string[] entries,
         string initial,
         Action<string> onPick
     )
@@ -77,7 +81,7 @@ public sealed class AssetPicker : MonoBehaviour
         picker.popout = popout;
         picker.onPick = onPick;
         picker.kind = kind;
-        picker.entries = Index(extensions, kind);
+        picker.entries = entries;
         picker.Build(popout.Content);
 
         // Start on the current value, previewed if it's in the list.

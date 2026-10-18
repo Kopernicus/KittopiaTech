@@ -74,7 +74,8 @@ inspector does in the editor. They show the keyword that's set, since that picks
 renders.
 
 Shaders Kopernicus has no loader for, such as a planet pack's own, get only the Shader
-properties section, and export as raw `_X` keys plus their `keyword`s. Their Keywords list
+properties section, and export as raw `_X` keys plus their `keyword`s. Click their shader's
+name to pick another from the shaders loaded in game. Their Keywords list
 holds the keywords enabled on the material that no property sets, each with a checkbox.
 Unity can't list every keyword a shader has, so to turn on one that isn't listed, type its
 name under the list and press Add. Keyword edits are staged like any other.
