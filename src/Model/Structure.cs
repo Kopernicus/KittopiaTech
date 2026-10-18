@@ -36,7 +36,9 @@ public static class Structure
         {
             if (MemberSchema.GetConfigType(type) == Kopernicus.ConfigParser.Enumerations.ConfigType.Value)
                 return Activator.CreateInstance(type);
-            return TypeSchema.Get(type).Construct(context.CelestialBody);
+            var created = TypeSchema.Get(type).Construct(context.CelestialBody);
+            NewObjectDefaults.Apply(created);
+            return created;
         }
     }
 

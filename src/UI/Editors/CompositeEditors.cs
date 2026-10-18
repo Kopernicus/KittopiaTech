@@ -207,7 +207,7 @@ public sealed class ColorFieldEditor : CompositeFieldEditor
     {
         if (picker != null || Source.IsReadOnly)
             return;
-        var current = Source.Get() is Color color ? color : default;
+        var current = Source.Get() is Color color ? color : Color.white;
         picker = ColorPicker.Open(this, FieldPath, current,
             (c, final) => Source.Set(c, final ? EditPhase.Final : EditPhase.Preview));
     }
@@ -215,7 +215,7 @@ public sealed class ColorFieldEditor : CompositeFieldEditor
     public override void Refresh()
     {
         base.Refresh();
-        var c = Source.Get() is Color color ? color : default;
+        var c = Source.Get() is Color color ? color : Color.white;
         swatch.color = new Color(c.r, c.g, c.b, 1f);
         if (picker != null)
             picker.SetColor(c);
