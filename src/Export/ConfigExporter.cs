@@ -7,6 +7,8 @@ using System.Reflection;
 using KittopiaTech.Model;
 using Kopernicus.ConfigParser.Enumerations;
 using Kopernicus.ConfigParser.Interfaces;
+using Kopernicus.Configuration.MaterialLoader;
+using Kopernicus.Configuration.Parsing;
 using UnityEngine;
 
 namespace KittopiaTech.Export;
@@ -49,9 +51,17 @@ public static class ConfigExporter
 
     public static void WriteObject(ConfigNode node, object obj)
     {
+        // Kopernicus picks a Material's loader from its shader, falling back to a default for
+        // where the material is used, so the shader is written for every loader.
+        bool material = obj is MaterialLoader { Value: not null };
+        if (material)
+            node.AddValue("shader", ((MaterialLoader)obj).Value.shader.name);
+
         foreach (var member in TypeSchema.Get(obj.GetType()).Members)
         {
             if (!member.Exported || !member.CanRead)
+                continue;
+            if (material && member.DeclaredType == typeof(ShaderParser))
                 continue;
             if (member.FieldName == "name" && node.HasValue("name"))
                 continue;

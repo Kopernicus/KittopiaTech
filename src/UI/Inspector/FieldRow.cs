@@ -99,12 +99,24 @@ public sealed class FieldRow : MonoBehaviour
 /// <summary>Builds the rows for an object's members from its schema.</summary>
 public static class InspectorBuilder
 {
-    public static void BuildMembers(Transform parent, IEditScope scope, object owner)
+    /// <param name="holder">The slot holding <paramref name="owner"/>, if it's a node.</param>
+    public static void BuildMembers(Transform parent, IEditScope scope, object owner, ISlot holder = null)
     {
+        // Any material's shader can be switched, which swaps its loader in the holder.
+        var shaderSlot = MaterialShaderSlot.For(holder, owner);
+        if (shaderSlot != null)
+        {
+            var resolution = FieldEditorRegistry.Resolve(null, shaderSlot.DeclaredType, MemberShape.Value);
+            FieldRow.Create(parent, scope.For(shaderSlot, resolution.Adapter), resolution);
+        }
+
         var schema = TypeSchema.Get(owner.GetType());
         foreach (var member in schema.Members)
         {
             if (member.Hidden)
+                continue;
+            // Custom and ring loaders' own shader members only set the shader for the parser.
+            if (shaderSlot != null && member.DeclaredType == typeof(Kopernicus.Configuration.Parsing.ShaderParser))
                 continue;
 
             // Ramp textures Kopernicus can bake from gradient stops are edited as stops.

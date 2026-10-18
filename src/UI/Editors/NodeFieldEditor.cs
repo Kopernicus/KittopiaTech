@@ -203,7 +203,7 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         bool show = expanded && value != null;
         if (show && built == null)
         {
-            InspectorBuilder.BuildMembers(content, Source.Scope, value);
+            InspectorBuilder.BuildMembers(content, Source.Scope, value, Source.Slot);
             built = value;
         }
         content.gameObject.SetActive(show);
