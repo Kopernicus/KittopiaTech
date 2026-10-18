@@ -34,9 +34,16 @@ Shader properties section listing every property of its shader by its raw name, 
 description and range. Materials on spawned bodies need a Kopernicus build with
 `MaterialLoader.CreateExisting`; without it, those materials don't appear.
 
+Properties whose shader marks them `[Toggle]`, `[ToggleOff]` or `[KeywordEnum]` show as a
+checkbox or a dropdown, and set their keywords as well as the property, as Unity's material
+inspector does in the editor. They show the keyword that's set, since that picks what
+renders.
+
 Shaders Kopernicus has no loader for, such as a planet pack's own, get only the Shader
-properties section, and export as raw `_X` keys plus their `keyword`s. Keywords can't be
-edited yet.
+properties section, and export as raw `_X` keys plus their `keyword`s. Their Keywords list
+holds the keywords enabled on the material that no property sets, each with a checkbox.
+Unity can't list every keyword a shader has, so to turn on one that isn't listed, type its
+name under the list and press Add. Keyword edits are staged like any other.
 
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for
