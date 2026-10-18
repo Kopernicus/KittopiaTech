@@ -51,6 +51,13 @@ KSP choose them, Smooth and Linear follow the neighbouring keys as they move, Fl
 and Free keeps tangents as typed. The table below lists every key for exact numbers; typing
 a tangent makes that key Free.
 
+Colour ramps that Kopernicus can bake from a gradient (rim and fog colour ramps) are edited
+as gradient stops. Click the ramp's button: drag the markers under the ramp to move stops,
+double-click to add one, and pick the selected stop's colour or type its time. A ramp
+loaded from a texture is read back as the few stops that best match it. Once edited, the ramp
+exports as its gradient node (`Gradient` or `FogColorRamp`) rather than a texture path. To
+use a texture instead, set the raw property (e.g. `_rimColorRamp`) under Shader properties.
+
 Each material (the scaled and PQS surface materials, ocean and scatter materials) has a
 Shader properties section listing every property of its shader by its raw name, e.g.
 `_MainTex`, including those with no named field. Hover a property for the shader's

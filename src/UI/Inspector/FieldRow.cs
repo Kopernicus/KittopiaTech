@@ -107,8 +107,12 @@ public static class InspectorBuilder
             if (member.Hidden)
                 continue;
 
-            var resolution = FieldEditorRegistry.Resolve(member, member.DeclaredType, member.Shape);
-            var source = scope.For(new MemberSlot(owner, member), resolution.Adapter);
+            // Ramp textures Kopernicus can bake from gradient stops are edited as stops.
+            ISlot slot = GradientSlot.For(owner, member);
+            var resolution = slot != null
+                ? FieldEditorRegistry.Resolve(null, slot.DeclaredType, MemberShape.Value)
+                : FieldEditorRegistry.Resolve(member, member.DeclaredType, member.Shape);
+            var source = scope.For(slot ?? new MemberSlot(owner, member), resolution.Adapter);
             try
             {
                 FieldRow.Create(parent, source, resolution);

@@ -172,19 +172,32 @@ public sealed class GradientSlot(MaterialLoader loader, MemberSchema texture, Me
     }
 
     /// <summary>
-    /// The fewest stops whose straight lines stay within about one colour step of every sample
-    /// (Ramer–Douglas–Peucker), so a baked ramp reads back as roughly the stops it came from.
+    /// Few enough stops to edit by hand: the tightest fit, starting at about one colour step,
+    /// with at most <see cref="MaxFitted"/> stops.
     /// </summary>
     static GradientRamp Fit(Color[] samples)
     {
-        const float Tolerance = 1.5f / 255f;
+        GradientRamp ramp = null;
+        for (float tolerance = 1.5f / 255f; ramp == null || ramp.Stops.Count > MaxFitted && tolerance < 0.5f; tolerance *= 2f)
+            ramp = Fit(samples, tolerance);
+        return ramp;
+    }
+
+    const int MaxFitted = 12;
+
+    /// <summary>
+    /// The fewest stops whose straight lines stay within <paramref name="tolerance"/> of every
+    /// sample (Ramer–Douglas–Peucker), so a baked ramp reads back as roughly the stops it came from.
+    /// </summary>
+    static GradientRamp Fit(Color[] samples, float tolerance)
+    {
         int last = samples.Length - 1;
         var keep = new SortedSet<int> { 0, last };
 
         void Split(int from, int to)
         {
             int worst = -1;
-            float worstError = Tolerance;
+            float worstError = tolerance;
             for (int i = from + 1; i < to; i++)
             {
                 var line = Color.Lerp(samples[from], samples[to], (float)(i - from) / (to - from));
