@@ -150,6 +150,12 @@ public sealed class GradientSlot(MaterialLoader loader, MemberSchema texture, Me
         }
     }
 
+    public override bool Equals(object obj) =>
+        obj is GradientSlot other && ReferenceEquals(Loader, other.Loader) && Property == other.Property;
+
+    public override int GetHashCode() =>
+        System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Loader) ^ Property.GetHashCode() ^ 0x1b873593;
+
     /// <summary>The texture's middle row, through the GPU since most textures aren't readable.</summary>
     static Color[] Sample(Texture texture)
     {
