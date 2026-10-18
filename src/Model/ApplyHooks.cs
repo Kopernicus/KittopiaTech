@@ -149,6 +149,32 @@ public static class ApplyHooks
             UnityEngine.Object.Destroy(old);
     }
 
+    /// <summary>
+    /// On a body that's already built, the ocean's material loader works on a copy of the
+    /// ocean's material, which Kopernicus only hands to the ocean while building the body.
+    /// Copy the edits onto the materials the ocean renders with, which its quads share.
+    /// </summary>
+    [ApplyHook(typeof(OceanLoader), Order = -1)]
+    static void CopyOceanMaterial(BodyContext body, OceanLoader ocean)
+    {
+        var edited = ocean.SurfaceMaterial?.Value;
+        var sphere = ocean.Value;
+        if (edited == null || sphere == null)
+            return;
+
+        Material[] live =
+        [
+            sphere.surfaceMaterial, sphere.ultraQualitySurfaceMaterial, sphere.highQualitySurfaceMaterial,
+            sphere.mediumQualitySurfaceMaterial, sphere.lowQualitySurfaceMaterial,
+        ];
+        foreach (var material in live.Where(m => m != null && m != edited).Distinct())
+        {
+            material.shader = edited.shader;
+            material.CopyPropertiesFromMaterial(edited);
+            material.shaderKeywords = edited.shaderKeywords;
+        }
+    }
+
     // Kopernicus copies a material's on-demand texture paths into the body's on-demand loaders
     // when it builds the body, and those would put the old textures back over texture edits.
     // RefreshOnDemand is only in Kopernicus builds with MaterialLoader.CreateExisting, the only
