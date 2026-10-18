@@ -256,6 +256,7 @@ public sealed class CurveGraphArea : MonoBehaviour, IPointerDownHandler, IDragHa
     public Action onRelease;
     public Action<Vector2> onDoubleClick;
     public Action onResize;
+    public Action onDelete;
 
     bool dragging;
     Vector2 pointer;
@@ -266,7 +267,12 @@ public sealed class CurveGraphArea : MonoBehaviour, IPointerDownHandler, IDragHa
     // The graph is drawn at its on-screen size, so it's redrawn when that changes.
     void OnRectTransformDimensionsChange() => onResize?.Invoke();
 
-    public void OnPointerDown(PointerEventData eventData) => onPress?.Invoke(Track(eventData));
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        // Selected so that Delete reaches this graph until something else is clicked.
+        EventSystem.current?.SetSelectedGameObject(gameObject, eventData);
+        onPress?.Invoke(Track(eventData));
+    }
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -285,6 +291,8 @@ public sealed class CurveGraphArea : MonoBehaviour, IPointerDownHandler, IDragHa
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Delete) && EventSystem.current?.currentSelectedGameObject == gameObject)
+            onDelete?.Invoke();
         if (dragging)
             onDrag?.Invoke(Normalize(pointer, eventCamera));
     }

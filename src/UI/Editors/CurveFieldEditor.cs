@@ -174,6 +174,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         area.onDrag = OnDrag;
         area.onRelease = OnRelease;
         area.onDoubleClick = OnDoubleClick;
+        area.onDelete = () => RemoveKey(selected);
         area.onResize = () =>
         {
             if (built)
@@ -181,7 +182,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         };
         built = false;
 
-        var hint = DebugSkin.CreateLabel(popout.Content, "Drag keys to move or reorder them; hold one at an edge to widen the view. Double-click to add a key.");
+        var hint = DebugSkin.CreateLabel(popout.Content, "Drag keys to move or reorder them; hold one at an edge to widen the view. Double-click to add a key; Delete removes the selected one.");
         hint.color = new Color(0.64f, 0.65f, 0.67f);
         FitTextHeight.Attach(hint);
 
