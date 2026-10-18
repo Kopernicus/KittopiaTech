@@ -47,8 +47,8 @@ public sealed class MemberSchema
 
     public string Description { get; }
 
-    /// <summary>The member's XML doc summary if its mod ships one, else its KittopiaDescription.</summary>
-    public string Documentation => documentation ??= DocComments.Get(Member) ?? Description ?? "";
+    /// <summary>The member's KittopiaDescription if it has one, else its XML doc summary if its mod ships one.</summary>
+    public string Documentation => documentation ??= Description ?? DocComments.Get(Member) ?? "";
     string documentation;
 
     public bool Hidden { get; }
