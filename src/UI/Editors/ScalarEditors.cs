@@ -172,3 +172,44 @@ public sealed class EnumFieldEditor : FieldEditor<object>
         dropdown.interactable = !Source.IsReadOnly;
     }
 }
+
+/// <summary>A <c>[KeywordEnum]</c> shader property as a dropdown of its options.</summary>
+[FieldEditor(typeof(KeywordChoice))]
+public sealed class KeywordChoiceFieldEditor : FieldEditor<KeywordChoice>
+{
+    [SerializeField]
+    TMP_Dropdown dropdown;
+
+    string[] options = [];
+    bool refreshing;
+
+    protected internal override void BuildPrefab(PrefabContext ctx)
+    {
+        EditorLayout.Row(transform);
+        dropdown = DebugSkin.CreateDropdown(transform);
+        EditorLayout.Compact(dropdown.gameObject);
+    }
+
+    protected override void Awake() => dropdown.onValueChanged.AddListener(OnSelected);
+
+    void OnSelected(int index)
+    {
+        if (!refreshing && index >= 0 && index < options.Length)
+            Commit(new KeywordChoice(options, index));
+    }
+
+    public override void Refresh()
+    {
+        var value = Value;
+        if (value.Options != null && value.Options != options)
+        {
+            options = value.Options;
+            dropdown.ClearOptions();
+            dropdown.AddOptions([.. options]);
+        }
+        refreshing = true;
+        dropdown.value = value.Index;
+        refreshing = false;
+        dropdown.interactable = !Source.IsReadOnly;
+    }
+}

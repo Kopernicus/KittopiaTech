@@ -69,25 +69,35 @@ public sealed class ShaderProperties : MonoBehaviour
         for (int i = 0; i < shader.GetPropertyCount(); i++)
         {
             var type = shader.GetPropertyType(i);
-            var slot = new ShaderPropertySlot(loader, shader.GetPropertyName(i), type);
-            var resolution = FieldEditorRegistry.Resolve(null, slot.DeclaredType, MemberShape.Value);
-            try
-            {
-                var row = FieldRow.Create(content, scope.For(slot, resolution.Adapter), resolution);
-                Tooltip.Attach(row.transform.GetChild(0).gameObject, Describe(shader, i, type));
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError($"[KittopiaTech] Failed to build a row for {slot.Name}: {e}");
-            }
+            var drawer = KeywordDrawer.For(shader, i);
+            var slot = new ShaderPropertySlot(loader, shader.GetPropertyName(i), type, drawer);
+            AddRow(content, slot, Describe(shader, i, type, drawer));
         }
     }
 
+    IValueSource AddRow(Transform parent, ISlot slot, string tooltip)
+    {
+        var resolution = FieldEditorRegistry.Resolve(null, slot.DeclaredType, MemberShape.Value);
+        var source = scope.For(slot, resolution.Adapter);
+        try
+        {
+            var row = FieldRow.Create(parent, source, resolution);
+            Tooltip.Attach(row.transform.GetChild(0).gameObject, tooltip);
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[KittopiaTech] Failed to build a row for {slot.Label}: {e}");
+        }
+        return source;
+    }
+
     /// <summary>The shader's own description of the property, and its limits for ranges.</summary>
-    static string Describe(Shader shader, int index, ShaderPropertyType type)
+    static string Describe(Shader shader, int index, ShaderPropertyType type, KeywordDrawer drawer)
     {
         string text = shader.GetPropertyDescription(index);
-        if (type == ShaderPropertyType.Range)
+        if (drawer != null)
+            text += $"\nSets keyword{(drawer.Keywords.Length > 1 ? "s" : "")} {string.Join(", ", drawer.Keywords)}";
+        else if (type == ShaderPropertyType.Range)
         {
             var limits = shader.GetPropertyRangeLimits(index);
             text += $"\nRange {limits.x} to {limits.y}";
