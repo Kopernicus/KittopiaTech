@@ -247,7 +247,7 @@ public class InspectorWindow : MonoBehaviour
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.margin = new Vector4(6f, 0f, 6f, 0f);
         treeLabels[body] = label;
-        treeRows[body] = row.gameObject;
+        treeButtons[body] = button;
 
         var children = body.orbitingBodies
             .Where(b => b != body)
@@ -256,7 +256,8 @@ public class InspectorWindow : MonoBehaviour
             AddTreeEntry(child, depth + 1);
     }
 
-    readonly Dictionary<CelestialBody, GameObject> treeRows = [];
+    // Kept rather than found from the labels: GetComponentInParent skips filtered-out rows.
+    readonly Dictionary<CelestialBody, Button> treeButtons = [];
 
     /// <summary>Shows the bodies whose name contains every word typed, and what they orbit.</summary>
     void FilterTree(string text)
@@ -271,8 +272,8 @@ public class InspectorWindow : MonoBehaviour
             // Walk up to the root so a match keeps its place in the tree.
             for (var b = body; b != null && shown.Add(b); b = b.referenceBody == b ? null : b.referenceBody) { }
         }
-        foreach (var (body, row) in treeRows.Select(kv => (kv.Key, kv.Value)))
-            row.SetActive(shown.Contains(body));
+        foreach (var (body, button) in treeButtons.Select(kv => (kv.Key, kv.Value)))
+            button.transform.parent.gameObject.SetActive(shown.Contains(body));
     }
 
     public void Select(CelestialBody body)
@@ -281,7 +282,7 @@ public class InspectorWindow : MonoBehaviour
         foreach (var (cb, label) in treeLabels.Select(kv => (kv.Key, kv.Value)))
         {
             label.fontStyle = cb == body ? FontStyles.Bold : FontStyles.Normal;
-            DebugSkin.SetSidebarItemSelected(label.GetComponentInParent<Button>(), cb == body);
+            DebugSkin.SetSidebarItemSelected(treeButtons[cb], cb == body);
         }
 
         string name = body != null ? body.displayName.LocalizeRemoveGender() : "";
