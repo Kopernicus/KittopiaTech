@@ -5,6 +5,7 @@ tags:
 
 depends:
   - name: Kopernicus
+  - name: KSPTextureLoader
 
 # Export Scaled Maps opens BurstPQS's Texture Exporter.
 recommends:
