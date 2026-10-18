@@ -27,6 +27,7 @@ public class InspectorWindow : MonoBehaviour
     Button exportMapsButton;
     Tooltip exportMapsTooltip;
     EditSession session;
+    Popout historyPopout;
     readonly Dictionary<CelestialBody, TextMeshProUGUI> treeLabels = [];
 
     public CelestialBody Body { get; private set; }
@@ -108,15 +109,25 @@ public class InspectorWindow : MonoBehaviour
         pendingLabel = DebugSkin.CreateLabel(footer.transform, "");
         pendingLabel.alignment = TextAlignmentOptions.MidlineRight;
         pendingLabel.color = PendingColor;
+        var history = DebugSkin.CreateButton(footer.transform, "History", ToggleHistory);
+        Tooltip.Attach(history.gameObject, "Restore the body to the state after an earlier Apply");
         discardButton = DebugSkin.CreateButton(footer.transform, "Discard", () => session?.Discard());
         applyButton = DebugSkin.CreateButton(footer.transform, "Apply", () => session?.Apply());
-        foreach (var button in new[] { exportBody, exportPatch, exportMapsButton, discardButton, applyButton })
+        foreach (var button in new[] { exportBody, exportPatch, exportMapsButton, history, discardButton, applyButton })
         {
             button.name = button.GetComponentInChildren<TextMeshProUGUI>().text.Replace(" ", "");
             var layout = button.GetComponent<LayoutElement>();
             layout.flexibleWidth = 0f;
             layout.preferredWidth = button == exportMapsButton ? 130f : 100f;
         }
+    }
+
+    void ToggleHistory()
+    {
+        if (historyPopout != null)
+            historyPopout.Close();
+        else if (session != null)
+            historyPopout = HistoryWindow.Open(this, session);
     }
 
     /// <summary>Exports the applied state; pending edits aren't included.</summary>
@@ -223,6 +234,8 @@ public class InspectorWindow : MonoBehaviour
         if (session != null)
             session.Changed -= UpdateFooter;
         session = null;
+        if (historyPopout != null)
+            historyPopout.Close();
 
         if (body != null)
         {

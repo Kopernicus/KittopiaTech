@@ -8,6 +8,15 @@ Creating a node or adding a list item (a ring, say) makes the object straight aw
 can edit it, but it stays amber until Apply rebuilds it; Discard removes it again.
 Removing a node or item can't be discarded.
 
+History lists every Apply made to the body since the game started, newest first, under an
+Original entry for the body as loaded. Click one to put the body back the way it was after
+that Apply (with edits pending, click again to confirm discarding them); later entries stay,
+so you can step forward again until you apply something new. Some edits can't be undone:
+removing an applied node or item, or running an action that asks for confirmation, so
+entries before them can no longer be restored. Restoring past an Apply that created objects
+removes them, and that Apply and those after it leave the list. History isn't saved when
+the game closes.
+
 Text holding a localization key such as `#autoLOC_900101` shows what the key reads in game
 when hovered.
 
