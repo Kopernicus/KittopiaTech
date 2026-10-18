@@ -18,6 +18,9 @@ public sealed class Revision
 
         /// <summary>The edit took objects off the body.</summary>
         public bool Removes;
+
+        /// <summary>Copies of the objects it removed, for restoring to before it.</summary>
+        public List<RemovedObject> Removed = [];
     }
 
     internal readonly List<Change> Changes = [];
@@ -28,7 +31,7 @@ public sealed class Revision
     /// <summary>An edit since then can't be undone (e.g. a removal), so this can't be restored.</summary>
     public bool Sealed { get; internal set; }
 
-    /// <summary>It destroyed objects, so the revisions before it can't be restored.</summary>
+    /// <summary>It destroyed objects it couldn't keep copies of, so the revisions before it can't be restored.</summary>
     internal bool Irreversible { get; set; }
 
     /// <summary>Restoring past a revision that created objects destroys them, so it can't be redone.</summary>
@@ -96,14 +99,22 @@ public sealed class EditHistory(EditSession session)
             {
                 var revision = revisions[Current];
                 foreach (var change in Enumerable.Reverse(revision.Changes))
+                {
+                    Rebuild(change, touched);
                     Write(change, change.Before, touched);
+                }
                 if (revision.Creates)
                     firstCreating = Current;
             }
             for (; Current < index; Current++)
             {
                 foreach (var change in revisions[Current + 1].Changes)
+                {
+                    // Removing them again, as the Apply did.
+                    foreach (var removed in change.Removed)
+                        Destroy(removed.Current);
                     Write(change, change.After, touched);
+                }
             }
         }
 
@@ -113,6 +124,55 @@ public sealed class EditHistory(EditSession session)
 
         ApplyHooks.Run(session.Context, touched);
         session.Invalidate();
+    }
+
+    /// <summary>
+    /// Rebuilds the objects <paramref name="change"/> removed, and points every revision that
+    /// held them, or anything beneath them, at the rebuilt copies.
+    /// </summary>
+    void Rebuild(Revision.Change change, HashSet<object> touched)
+    {
+        if (change.Removed.Count == 0)
+            return;
+
+        var map = new Dictionary<object, object>(ReferenceComparer.Instance);
+        foreach (var removed in change.Removed)
+        {
+            var old = removed.Current;
+            try
+            {
+                touched.Add(removed.Rebuild(session.Context, map));
+            }
+            catch (Exception e)
+            {
+                // Leave it out rather than putting the destroyed object back.
+                map[old] = null;
+                Debug.LogError($"[KittopiaTech] Failed to rebuild the removed {old.GetType().Name}: {e}");
+            }
+        }
+
+        object Map(object o) => o != null && map.TryGetValue(o, out var rebuilt) ? rebuilt : o;
+        object MapValue(object value) =>
+            value is IList list ? new ArrayList(list.Cast<object>().Select(Map).Where(o => o != null).ToList()) : Map(value);
+
+        foreach (var other in revisions.SelectMany(r => r.Changes))
+        {
+            other.Slot = other.Slot.Rebind(o => Map(o) ?? o);
+            other.Before = MapValue(other.Before);
+            other.After = MapValue(other.After);
+        }
+    }
+
+    void Destroy(object value)
+    {
+        try
+        {
+            Structure.Destroy(session.Context, value);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[KittopiaTech] Failed to remove {value.GetType().Name} again: {e}");
+        }
     }
 
     static void Write(Revision.Change change, object value, HashSet<object> touched)

@@ -250,20 +250,27 @@ public sealed class EditSession : IEditScope
                 try
                 {
                     object before = edit.Slot is CreatedSlot ? null : EditHistory.Snapshot(ReadLive(edit.Slot, edit.Adapter));
+                    // Keep a copy of each object going, so History can rebuild it.
                     var dropped = Dropped(edit.Slot, before, edit.Value);
+                    var kept = new List<RemovedObject>();
                     foreach (var removed in dropped)
+                    {
+                        var copy = RemovedObject.TrySnapshot(Context, removed);
+                        if (copy != null)
+                            kept.Add(copy);
+                        // A destructor can't be undone, so without a copy there's no going back.
+                        else if (TypeSchema.Get(removed.GetType()).Destructor != null)
+                            revision.Irreversible = true;
                         Structure.Destroy(Context, removed);
+                    }
                     edit.Slot.Write(edit.Adapter.Wrap(edit.Value));
                     pending.Remove(edit.Slot);
                     touched.Add(edit.Slot.Owner);
                     revision.Changes.Add(new Revision.Change
                     {
                         Slot = edit.Slot, Adapter = edit.Adapter, Before = before, After = EditHistory.Snapshot(edit.Value),
-                        Removes = dropped.Count > 0,
+                        Removes = dropped.Count > 0, Removed = kept,
                     });
-                    // A destructor can't be undone, so there's no going back past this revision.
-                    if (dropped.Any(o => TypeSchema.Get(o.GetType()).Destructor != null))
-                        revision.Irreversible = true;
                 }
                 catch (Exception e)
                 {
