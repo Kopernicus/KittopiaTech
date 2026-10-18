@@ -18,6 +18,7 @@ public class InspectorWindow : MonoBehaviour
     static readonly List<InspectorWindow> Windows = [];
 
     TextMeshProUGUI title;
+    TMP_InputField search;
     Transform treeContent;
     Transform inspectorContent;
     TextMeshProUGUI pendingLabel;
@@ -101,7 +102,7 @@ public class InspectorWindow : MonoBehaviour
         var treeLayout = tree.gameObject.AddComponent<LayoutElement>();
         treeLayout.preferredWidth = 190f;
         treeLayout.flexibleWidth = 0f;
-        var search = DebugSkin.CreateInputField(tree.transform);
+        search = DebugSkin.CreateInputField(tree.transform);
         search.name = "Search";
         if (search.placeholder is TMP_Text placeholder)
             placeholder.text = "Search bodies";
@@ -117,6 +118,10 @@ public class InspectorWindow : MonoBehaviour
         DebugSkin.CreateSeparator(content, vertical: false);
         BuildFooter(content);
         BuildTree();
+        foreach (var existing in EditSession.All)
+            UpdateTreeEntry(existing);
+        EditSession.AnyChanged += UpdateTreeEntry;
+        Bodies.Changed += RebuildTree;
     }
 
     void BuildFooter(Transform content)
@@ -214,6 +219,7 @@ public class InspectorWindow : MonoBehaviour
         if (session != null)
             session.Changed -= UpdateFooter;
         EditSession.AnyChanged -= UpdateTreeEntry;
+        Bodies.Changed -= RebuildTree;
     }
 
     void BuildTree()
@@ -221,10 +227,19 @@ public class InspectorWindow : MonoBehaviour
         var bodies = PSystemManager.Instance.localBodies;
         foreach (var root in bodies.Where(b => b.referenceBody == null || b.referenceBody == b))
             AddTreeEntry(root, 0);
+    }
 
+    /// <summary>Lists the bodies afresh after one was added, removed or moved.</summary>
+    void RebuildTree()
+    {
+        InspectorBuilder.Clear(treeContent);
+        treeLabels.Clear();
+        treeButtons.Clear();
+        BuildTree();
         foreach (var existing in EditSession.All)
             UpdateTreeEntry(existing);
-        EditSession.AnyChanged += UpdateTreeEntry;
+        FilterTree(search.text);
+        HighlightSelected();
     }
 
     /// <summary>Bodies with pending edits are listed in the pending colour.</summary>
@@ -276,14 +291,19 @@ public class InspectorWindow : MonoBehaviour
             button.transform.parent.gameObject.SetActive(shown.Contains(body));
     }
 
+    void HighlightSelected()
+    {
+        foreach (var (cb, label) in treeLabels.Select(kv => (kv.Key, kv.Value)))
+        {
+            label.fontStyle = cb == Body ? FontStyles.Bold : FontStyles.Normal;
+            DebugSkin.SetSidebarItemSelected(treeButtons[cb], cb == Body);
+        }
+    }
+
     public void Select(CelestialBody body)
     {
         Body = body;
-        foreach (var (cb, label) in treeLabels.Select(kv => (kv.Key, kv.Value)))
-        {
-            label.fontStyle = cb == body ? FontStyles.Bold : FontStyles.Normal;
-            DebugSkin.SetSidebarItemSelected(treeButtons[cb], cb == body);
-        }
+        HighlightSelected();
 
         string name = body != null ? body.displayName.LocalizeRemoveGender() : "";
         title.text = body != null ? $"Kittopia · {name}" : "Kittopia";

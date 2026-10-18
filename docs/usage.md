@@ -33,6 +33,10 @@ holding only what differs from the body's Template. Both write
 `PluginData/Kopernicus/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
 load it), replacing the body's last export. Move the file into `GameData` to use it.
 
+Fields that name a body, such as the orbit's `referenceBody`, open a list of the bodies in
+game when clicked. Applying a new `referenceBody` moves the body there, in the body list
+and on the map; a body can't be moved to orbit itself or one of its moons.
+
 Hovering a field's label shows its documentation, if the mod that defines it provides
 any (see [Extending KittopiaTech](extending.md#field-docs)).
 

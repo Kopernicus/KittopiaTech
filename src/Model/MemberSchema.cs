@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Kopernicus.ConfigParser.Attributes;
 using Kopernicus.ConfigParser.Enumerations;
 using Kopernicus.ConfigParser.Interfaces;
+using Kopernicus.Configuration;
 using Kopernicus.UI;
 
 namespace KittopiaTech.Model;
@@ -84,7 +86,7 @@ public sealed class MemberSchema
         }
 
         var hide = member.GetCustomAttribute<KittopiaHideOption>();
-        Hidden = hide != null && !hide.Show;
+        Hidden = hide != null && !hide.Show && !Shown.Contains((member.DeclaringType, member.Name));
         Exported = hide?.Export ?? true;
         Untouchable = member.IsDefined(typeof(KittopiaUntouchable), true);
         PreApply = member.IsDefined(typeof(PreApply), true);
@@ -103,6 +105,13 @@ public sealed class MemberSchema
                 : MemberShape.Node;
         }
     }
+
+    /// <summary>Members Kopernicus hides from Kittopia that KittopiaTech can edit safely.</summary>
+    static readonly HashSet<(Type, string)> Shown =
+    [
+        // The orbit apply hook moves the body to its new parent.
+        (typeof(OrbitLoader), nameof(OrbitLoader.ReferenceBody)),
+    ];
 
     public string Name => Member.Name;
 

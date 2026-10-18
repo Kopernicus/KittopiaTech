@@ -63,9 +63,12 @@ public sealed class AssetPicker : MonoBehaviour
     public static Popout Open(Component owner, string title, AssetKind kind, string initial, Action<string> onPick) =>
         Open(owner, title, kind, Index(TextureExtensions, kind), initial, onPick);
 
-    /// <summary>Opens a picker over a list of names that aren't files, such as bodies or shaders.</summary>
+    /// <summary>
+    /// Opens a picker over a list of names that aren't files, such as bodies or shaders. Short
+    /// lists are browsed, so it starts with every name shown and the current one selected.
+    /// </summary>
     public static Popout OpenList(Component owner, string title, string[] entries, string initial, Action<string> onPick) =>
-        Open(owner, title, AssetKind.File, entries, initial, onPick);
+        Open(owner, title, AssetKind.File, entries, initial, onPick, searchInitial: false);
 
     static Popout Open(
         Component owner,
@@ -73,7 +76,8 @@ public sealed class AssetPicker : MonoBehaviour
         AssetKind kind,
         string[] entries,
         string initial,
-        Action<string> onPick
+        Action<string> onPick,
+        bool searchInitial = true
     )
     {
         var popout = Popout.Open(owner, title, new Vector2(460f, kind == AssetKind.File ? 560f : 720f));
@@ -85,7 +89,7 @@ public sealed class AssetPicker : MonoBehaviour
         picker.Build(popout.Content);
 
         // Start on the current value, previewed if it's in the list.
-        picker.search.text = initial ?? "";
+        picker.search.text = searchInitial ? initial ?? "" : "";
         picker.Filter(picker.search.text);
         var current = picker.entries.FirstOrDefault(e => string.Equals(e, initial, StringComparison.OrdinalIgnoreCase));
         if (current != null)

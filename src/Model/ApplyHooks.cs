@@ -127,6 +127,7 @@ public static class ApplyHooks
     [ApplyHook(typeof(OrbitLoader), Order = -10, Replaces = nameof(OrbitLoader.FinalizeOrbit))]
     static void FinalizeOrbit(BodyContext body, OrbitLoader orbit)
     {
+        Bodies.SyncParent(orbit.Value);
         orbit.Value.orbit.Init();
         orbit.FinalizeOrbit();
     }
