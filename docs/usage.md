@@ -46,7 +46,7 @@ body: the body won't be there when the save loads.
 
 Export Body writes the whole body as a config; Export Patch writes a ModuleManager patch
 holding only what differs from the body's Template. Both write
-`PluginData/Kopernicus/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
+`PluginData/Kittopia/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
 load it), replacing the body's last export. Move the file into `GameData` to use it.
 
 Fields that name a body, such as the orbit's `referenceBody`, open a list of the bodies in

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace KittopiaTech.Export;
 
-/// <summary>Writes exports to <c>PluginData/Kopernicus/&lt;body&gt;.cfg</c> in the KSP folder.</summary>
+/// <summary>Writes exports to <c>PluginData/Kittopia/&lt;body&gt;.cfg</c> in the KSP folder.</summary>
 public static class ExportFiles
 {
     const string Pass = "FOR[KittopiaTech]";
@@ -44,7 +44,7 @@ public static class ExportFiles
     static string Save(string bodyName, ConfigNode root)
     {
         // Replaces the body's previous export, whichever kind it was.
-        string relative = Path.Combine("PluginData/Kopernicus", bodyName + ".cfg");
+        string relative = Path.Combine("PluginData/Kittopia", bodyName + ".cfg");
         string path = Path.Combine(KSPUtil.ApplicationRootPath, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(path));
         root.Save(path);
