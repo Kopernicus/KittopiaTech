@@ -30,6 +30,9 @@ public sealed class EditSession : IEditScope
 
     public BodyContext Context { get; }
 
+    /// <summary>The revisions Apply has made to this body, for restoring earlier ones.</summary>
+    public EditHistory History { get; }
+
     /// <summary>Raised whenever pending edits change or the body changes under them.</summary>
     public event Action Changed;
 
@@ -42,6 +45,7 @@ public sealed class EditSession : IEditScope
     EditSession(BodyContext context)
     {
         Context = context;
+        History = new EditHistory(this);
         Changed += () =>
         {
             pendingWithin = null;
@@ -230,6 +234,7 @@ public sealed class EditSession : IEditScope
             return;
 
         var touched = new HashSet<object>(ReferenceComparer.Instance);
+        var revision = new Revision { Label = runHooks ? "Apply" : "Apply before action" };
 
         // PreApply members first, as the parser does; otherwise in the order they were made.
         // Reorders go last: edits to items of a reordered list land in its staged copy.
@@ -243,9 +248,14 @@ public sealed class EditSession : IEditScope
             {
                 try
                 {
+                    object before = edit.Slot is CreatedSlot ? null : EditHistory.Snapshot(ReadLive(edit.Slot, edit.Adapter));
                     edit.Slot.Write(edit.Adapter.Wrap(edit.Value));
                     pending.Remove(edit.Slot);
                     touched.Add(edit.Slot.Owner);
+                    revision.Changes.Add(new Revision.Change
+                    {
+                        Slot = edit.Slot, Adapter = edit.Adapter, Before = before, After = EditHistory.Snapshot(edit.Value),
+                    });
                 }
                 catch (Exception e)
                 {
@@ -255,8 +265,22 @@ public sealed class EditSession : IEditScope
             }
         }
 
+        if (revision.Changes.Count > 0)
+            History.Record(revision);
         if (runHooks)
             ApplyHooks.Run(Context, touched);
+        Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// Records an edit history can't undo, so earlier revisions can't be restored. Removing an
+    /// object that was created since the last Apply doesn't count.
+    /// </summary>
+    public void SealHistory(string label, object removed = null)
+    {
+        if (removed != null && pending.ContainsKey(new CreatedSlot(removed, null, null)))
+            return;
+        History.Seal(label);
         Changed?.Invoke();
     }
 

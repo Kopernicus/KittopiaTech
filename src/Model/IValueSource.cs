@@ -67,6 +67,9 @@ public interface IEditScope
     /// </summary>
     void MarkCreated(object created, string label, Action undo);
 
+    /// <summary>Records an edit history can't undo, e.g. removing <paramref name="removed"/>.</summary>
+    void SealHistory(string label, object removed = null);
+
     /// <summary>Whether a pending edit sits on <paramref name="node"/> or anywhere beneath it.</summary>
     bool HasPendingWithin(object node);
 }

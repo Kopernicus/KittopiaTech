@@ -109,6 +109,8 @@ public sealed class ActionButton : MonoBehaviour
                 result = action.Method.Invoke(owner, null);
 
             // Run coroutines on the window so they outlive a collapsed foldout.
+            if (ActionBar.NeedsConfirm(action))
+                scope.SealHistory($"Ran {action.Name}");
             if (result is IEnumerator routine)
                 GetComponentInParent<InspectorWindow>().StartCoroutine(RunCoroutine(routine));
             else

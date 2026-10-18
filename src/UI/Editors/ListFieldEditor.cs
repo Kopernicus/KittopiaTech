@@ -236,6 +236,7 @@ public sealed class ListFieldEditor : FieldEditor<object>
     {
         var item = list[index];
         int liveIndex = ReferenceEquals(list, live) ? index : IndexOf(live, item);
+        Source.Scope.SealHistory($"Removed {Source.Label} item", item);
         Mutate(() =>
         {
             Structure.Destroy(Source.Scope.Context, item);

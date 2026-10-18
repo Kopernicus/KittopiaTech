@@ -98,6 +98,7 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         try
         {
             var value = Source.Get();
+            Source.Scope.SealHistory($"Removed {Source.Label}", value);
             Source.Scope.DiscardWithin(value);
             Structure.Destroy(Source.Scope.Context, value);
             WriteNow(null);
