@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Kopernicus.Configuration;
+using Kopernicus.Components;
 using Kopernicus.Configuration.MaterialLoader;
+using Kopernicus.Configuration.ModLoader;
 using Kopernicus.OnDemand;
 using UnityEngine;
 
@@ -187,6 +189,8 @@ public static class ApplyHooks
         "RefreshOnDemand", [typeof(GameObject)]);
     static readonly MethodInfo RefreshSurfaceOnDemand = typeof(MaterialLoader).GetMethod(
         "RefreshOnDemand", [typeof(PQS), typeof(PQSMod_OnDemandHandler)]);
+    static readonly MethodInfo RefreshModOnDemand = typeof(MaterialLoader).GetMethod(
+        "RefreshOnDemand", [typeof(IPQSModWithMaterial), typeof(PQSMod_OnDemandHandler)]);
 
     [ApplyHook(typeof(ScaledVersionLoader), Order = -1)]
     static void RefreshScaledTextures(BodyContext body, ScaledVersionLoader scaled)
@@ -201,6 +205,14 @@ public static class ApplyHooks
         var handler = pqs.Value.GetComponentInChildren<PQSMod_OnDemandHandler>(true);
         if (pqs.SurfaceMaterial != null && handler != null)
             RefreshSurfaceOnDemand?.Invoke(pqs.SurfaceMaterial, [pqs.Value, handler]);
+    }
+
+    [ApplyHook(typeof(LandControl.LandClassScatterLoader), Order = -2)]
+    static void RefreshScatterTextures(BodyContext body, LandControl.LandClassScatterLoader scatter)
+    {
+        var handler = body.CelestialBody.pqsController?.GetComponentInChildren<PQSMod_OnDemandHandler>(true);
+        if (scatter.Material != null && scatter.Scatter != null && handler != null)
+            RefreshModOnDemand?.Invoke(scatter.Material, [scatter.Scatter, handler]);
     }
 
     [ApplyHook(typeof(PQSLoader), Replaces = nameof(PQSLoader.Rebuild))]
