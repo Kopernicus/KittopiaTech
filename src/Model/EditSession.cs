@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Kopernicus.ConfigParser.Enumerations;
 using UnityEngine;
 
 namespace KittopiaTech.Model;
@@ -249,13 +250,20 @@ public sealed class EditSession : IEditScope
                 try
                 {
                     object before = edit.Slot is CreatedSlot ? null : EditHistory.Snapshot(ReadLive(edit.Slot, edit.Adapter));
+                    var dropped = Dropped(edit.Slot, before, edit.Value);
+                    foreach (var removed in dropped)
+                        Structure.Destroy(Context, removed);
                     edit.Slot.Write(edit.Adapter.Wrap(edit.Value));
                     pending.Remove(edit.Slot);
                     touched.Add(edit.Slot.Owner);
                     revision.Changes.Add(new Revision.Change
                     {
                         Slot = edit.Slot, Adapter = edit.Adapter, Before = before, After = EditHistory.Snapshot(edit.Value),
+                        Removes = dropped.Count > 0,
                     });
+                    // A destructor can't be undone, so there's no going back past this revision.
+                    if (dropped.Any(o => TypeSchema.Get(o.GetType()).Destructor != null))
+                        revision.Irreversible = true;
                 }
                 catch (Exception e)
                 {
@@ -272,16 +280,38 @@ public sealed class EditSession : IEditScope
         Changed?.Invoke();
     }
 
-    /// <summary>
-    /// Records an edit history can't undo, so earlier revisions can't be restored. Removing an
-    /// object that was created since the last Apply doesn't count.
-    /// </summary>
-    public void SealHistory(string label, object removed = null)
+    public bool IsCreated(object value) => pending.ContainsKey(new CreatedSlot(value, null, null));
+
+    /// <summary>Records an edit history can't undo, so earlier revisions can't be restored.</summary>
+    public void SealHistory(string label)
     {
-        if (removed != null && pending.ContainsKey(new CreatedSlot(removed, null, null)))
-            return;
         History.Seal(label);
         Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// The objects an edit takes off the body: a node member set to none, or the node items a
+    /// list edit leaves out. Removals are staged this way, so they only happen on Apply.
+    /// </summary>
+    static List<object> Dropped(ISlot slot, object before, object after)
+    {
+        var dropped = new List<object>();
+        switch (slot)
+        {
+            case MemberSlot { Member.Shape: MemberShape.Node } when before != null && after == null:
+                dropped.Add(before);
+                break;
+            case ListOrderSlot when before is IList old && after is IList kept:
+                foreach (var item in old)
+                {
+                    if (item != null
+                        && MemberSchema.GetConfigType(item.GetType()) == ConfigType.Node
+                        && !kept.Cast<object>().Any(k => ReferenceEquals(k, item)))
+                        dropped.Add(item);
+                }
+                break;
+        }
+        return dropped;
     }
 
     /// <summary>The object and every node or list item beneath it.</summary>

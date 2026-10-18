@@ -15,6 +15,9 @@ public sealed class Revision
         public ValueAdapter Adapter;
         public object Before;
         public object After;
+
+        /// <summary>The edit took objects off the body.</summary>
+        public bool Removes;
     }
 
     internal readonly List<Change> Changes = [];
@@ -25,10 +28,14 @@ public sealed class Revision
     /// <summary>An edit since then can't be undone (e.g. a removal), so this can't be restored.</summary>
     public bool Sealed { get; internal set; }
 
+    /// <summary>It destroyed objects, so the revisions before it can't be restored.</summary>
+    internal bool Irreversible { get; set; }
+
     /// <summary>Restoring past a revision that created objects destroys them, so it can't be redone.</summary>
     internal bool Creates => Changes.Any(c => c.Slot is CreatedSlot);
 
-    public IEnumerable<string> Edited => Changes.Select(c => c.Slot is CreatedSlot ? $"new {c.Slot.Label}" : c.Slot.Label);
+    public IEnumerable<string> Edited =>
+        Changes.Select(c => c.Slot is CreatedSlot ? $"new {c.Slot.Label}" : c.Removes ? $"removed from {c.Slot.Label}" : c.Slot.Label);
 }
 
 /// <summary>
@@ -51,6 +58,11 @@ public sealed class EditHistory(EditSession session)
     {
         // A new revision replaces any that were restored away from.
         revisions.RemoveRange(Current + 1, revisions.Count - Current - 1);
+        if (revision.Irreversible)
+        {
+            foreach (var earlier in revisions)
+                earlier.Sealed = true;
+        }
         revisions.Add(revision);
         // The oldest kept becomes the earliest state that can be restored.
         if (revisions.Count > Limit)

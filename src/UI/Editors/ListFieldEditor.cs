@@ -14,8 +14,8 @@ namespace KittopiaTech.UI.Editors;
 
 /// <summary>
 /// The fallback for collections: a foldout of item rows with a drag grip and remove button, and
-/// an Add bar. Adding and removing items are structural edits and happen immediately; reordering
-/// is staged like any other edit.
+/// an Add bar. Adding an item is a structural edit and happens immediately; removing and
+/// reordering stage a copy of the list like any other edit, so removals wait for Apply.
 /// </summary>
 [FieldEditor(typeof(Shapes.Collection))]
 public sealed class ListFieldEditor : FieldEditor<object>
@@ -123,9 +123,12 @@ public sealed class ListFieldEditor : FieldEditor<object>
 
         int count = list?.Count ?? 0;
         bool reordered = order?.IsModified ?? false;
+        // The staged copy holds every live item but the removed ones.
+        int removed = reordered ? live.Count - count : 0;
         string label = NodeFieldEditor.PendingLabel(Source.Label, reordered || Source.Scope.HasPendingWithin(live));
+        string removing = removed > 0 ? $", {removed} removed on Apply" : "";
         headerText.text =
-            $"{(expanded ? "-" : "+")} <b>{label}</b>  <color=#a3a7ab>{elementType?.Name} x{count}</color>";
+            $"{(expanded ? "-" : "+")} <b>{label}</b>  <color=#a3a7ab>{elementType?.Name} x{count}{removing}</color>";
         resetButton.gameObject.SetActive(reordered);
 
         if (expanded && builtCount != count)
@@ -185,18 +188,19 @@ public sealed class ListFieldEditor : FieldEditor<object>
         }
     }
 
-    void Mutate(Action action)
+    /// <summary>Changes the live list straight away, and the staged copy with it if there is one.</summary>
+    void Mutate(Action<IList> action)
     {
         try
         {
-            // Pending edits on items are keyed by index, so they can't survive a reshuffle.
-            if (list != null)
-                Source.Scope.DiscardWithin(list);
-            if (live != null && !ReferenceEquals(list, live))
-                Source.Scope.DiscardWithin(live);
-            order?.Reset();
-            action();
+            var staged = order is { IsModified: true } ? (IList)order.Get() : null;
+            action(live);
             WriteBack();
+            if (staged != null)
+            {
+                action(staged);
+                order.Set(staged);
+            }
         }
         catch (Exception e)
         {
@@ -209,16 +213,22 @@ public sealed class ListFieldEditor : FieldEditor<object>
     void Add()
     {
         var type = concreteTypes != null ? concreteTypes[typePicker.value] : elementType;
-        object created = null;
-        Mutate(() =>
+        object created;
+        try
         {
             live ??= (IList)Activator.CreateInstance(Source.ValueType);
             created = Structure.Create(Source.Scope.Context, type);
-            live.Add(created);
-        });
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[KittopiaTech] Failed to add to {Source.Label}: {e}");
+            return;
+        }
+        // Appending moves no index, so pending edits on other items stay where they are.
+        Mutate(items => items.Add(created));
 
         // Strings and other values have no hooks to run and nothing to destroy.
-        if (created == null || MemberSchema.GetConfigType(created.GetType()) != ConfigType.Node)
+        if (MemberSchema.GetConfigType(created.GetType()) != ConfigType.Node)
             return;
         var (list, slot, context) = (live, Source.Slot, Source.Scope.Context);
         Source.Scope.MarkCreated(created, $"{Source.Label} item", () =>
@@ -235,13 +245,21 @@ public sealed class ListFieldEditor : FieldEditor<object>
     void Remove(int index)
     {
         var item = list[index];
-        int liveIndex = ReferenceEquals(list, live) ? index : IndexOf(live, item);
-        Source.Scope.SealHistory($"Removed {Source.Label} item", item);
-        Mutate(() =>
+        if (item != null && MemberSchema.GetConfigType(item.GetType()) == ConfigType.Node)
+            Source.Scope.DiscardWithin(item);
+
+        // An item added since the last Apply has nothing to keep, so it goes straight away.
+        if (item != null && Source.Scope.IsCreated(item))
         {
             Structure.Destroy(Source.Scope.Context, item);
-            live.RemoveAt(liveIndex);
-        });
+            Mutate(items => items.RemoveAt(IndexOf(items, item)));
+            return;
+        }
+
+        // Otherwise stage a copy without it; Apply destroys it.
+        var copy = StagedCopy();
+        copy.RemoveAt(index);
+        order.Set(copy);
     }
 
     static int IndexOf(IList list, object item)
@@ -254,8 +272,8 @@ public sealed class ListFieldEditor : FieldEditor<object>
         return list.IndexOf(item);
     }
 
-    /// <summary>Stages a reordered copy, carrying pending item values into it.</summary>
-    void Move(int from, int to)
+    /// <summary>A copy of the shown items to stage, carrying pending item values into it.</summary>
+    IList StagedCopy()
     {
         var copy = live.GetType().GetConstructor(Type.EmptyTypes) != null
             ? (IList)Activator.CreateInstance(live.GetType())
@@ -268,7 +286,13 @@ public sealed class ListFieldEditor : FieldEditor<object>
             if (carry)
                 source.Reset();
         }
+        return copy;
+    }
 
+    /// <summary>Stages a reordered copy.</summary>
+    void Move(int from, int to)
+    {
+        var copy = StagedCopy();
         var item = copy[from];
         copy.RemoveAt(from);
         copy.Insert(to, item);

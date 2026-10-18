@@ -6,7 +6,9 @@ runs the matching rebuild (sphere, scaled mesh, orbit, rings).
 
 Creating a node or adding a list item (a ring, say) makes the object straight away so you
 can edit it, but it stays amber until Apply rebuilds it; Discard removes it again.
-Removing a node or item can't be discarded.
+Removing a node or item is staged too: a node shows "removed on Apply" with an Undo button,
+and a list hides the item and counts it in its header until Apply, Reset or Discard. Apply
+destroys it for good. Removing something created since the last Apply happens straight away.
 
 History lists the last 40 Applies made to the body since the game started, newest first,
 under an Original entry for the body as loaded (once there are more, the oldest kept entry is
@@ -14,8 +16,9 @@ as far back as you can go). Each body keeps its own history, and an open History
 switches to it when you pick another body. Click one to put the body back the way it was after
 that Apply (with edits pending, click again to confirm discarding them); later entries stay,
 so you can step forward again until you apply something new. Some edits can't be undone:
-removing an applied node or item, or running an action that asks for confirmation, so
-entries before them can no longer be restored. Restoring past an Apply that created objects
+applying a removal of an object Kopernicus has to tear down (rings, atmospheres and the
+like), or running an action that asks for confirmation, so entries before them can no longer
+be restored. Restoring past an Apply that created objects
 removes them, and that Apply and those after it leave the list. History isn't saved when
 the game closes.
 

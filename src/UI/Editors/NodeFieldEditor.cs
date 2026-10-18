@@ -93,15 +93,28 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         Refresh();
     }
 
+    /// <summary>A removal is staged as none, so it can be undone until Apply destroys the object.</summary>
+    bool RemovalPending => Source.IsModified && Source.Get() == null;
+
     void Remove()
     {
+        if (RemovalPending)
+        {
+            Source.Reset();
+            return;
+        }
         try
         {
             var value = Source.Get();
-            Source.Scope.SealHistory($"Removed {Source.Label}", value);
             Source.Scope.DiscardWithin(value);
-            Structure.Destroy(Source.Scope.Context, value);
-            WriteNow(null);
+            // Something not applied yet has nothing to keep, so it goes straight away.
+            if (Source.Scope.IsCreated(value))
+            {
+                Structure.Destroy(Source.Scope.Context, value);
+                WriteNow(null);
+            }
+            else
+                Source.Set(null);
         }
         catch (Exception e)
         {
@@ -173,8 +186,9 @@ public sealed class NodeFieldEditor : FieldEditor<object>
     public override void Refresh()
     {
         var value = Source.Get();
+        bool removing = RemovalPending;
         string name = value != null ? Structure.SummaryName(value) : null;
-        string type = value?.GetType().Name ?? "none";
+        string type = removing ? "removed on Apply" : value?.GetType().Name ?? "none";
         string summary = string.IsNullOrEmpty(name) ? "" : $" {name}";
         string label = PendingLabel(Source.Label + summary, Source.IsModified || Source.Scope.HasPendingWithin(value));
         headerText.text =
@@ -197,13 +211,15 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         // Untouchable or read-only members can't be created or removed, and list items are
         // added and removed by their list.
         bool editable = !Source.IsReadOnly && Source.Member != null;
-        bool canCreate = editable && value == null && Structure.CanCreate(Source.ValueType);
+        bool canCreate = editable && value == null && !removing && Structure.CanCreate(Source.ValueType);
         typePicker.gameObject.SetActive(canCreate && concreteTypes != null);
         createButton.gameObject.SetActive(canCreate);
-        removeButton.gameObject.SetActive(editable && value != null);
+        removeButton.gameObject.SetActive(editable && (value != null || removing));
+        removeButton.GetComponentInChildren<TextMeshProUGUI>().text = removing ? "Undo" : "x";
+        removeButton.GetComponent<LayoutElement>().preferredWidth = removing ? 48f : EditorLayout.RowHeight;
 
         // An empty member that can't be created (e.g. a non-star's Light) has nothing to show.
         if (Source.Member != null)
-            transform.parent.gameObject.SetActive(value != null || canCreate);
+            transform.parent.gameObject.SetActive(value != null || canCreate || removing);
     }
 }
