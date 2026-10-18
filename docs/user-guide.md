@@ -19,18 +19,24 @@ Applied changes only last until the game closes. To keep them, export the body:
 Both write `PluginData/Kittopia/<body>.cfg` in the KSP folder, replacing the body's last
 export. The game doesn't load files there; move the file into `GameData` to use it.
 
+![The footer after exporting Duna](images/guide-export.png)
+
 ## Editing
 - Hover a field's label to see its documentation, where the mod that defines it provides
   any. Hover a localization key such as `#autoLOC_900101` to see what it says in game.
 - Adding a node or list item, such as a ring, creates it straight away so you can edit it.
   Discard removes it again.
 - Removing a node or item waits for Apply, and can be undone until then.
+
+  ![Duna's atmosphere waiting to be removed](images/guide-remove.png)
 - In lists that hold several types, such as a PQS's Mods, Add opens a searchable list of
   types to pick from.
 
   ![Picking a PQS mod to add](images/guide-addtype.png)
 - Fields that name a body, such as the orbit's `referenceBody`, show a list of bodies when
   clicked. Applying a new `referenceBody` moves the body into orbit around it.
+
+  ![Picking Duna's reference body](images/guide-body.png)
 
 ## History
 History lists the body's last 40 Applies, newest first, under an Original entry for the body
@@ -95,7 +101,13 @@ For shaders Kopernicus has no loader for, such as a planet pack's own, you can c
 shader's name to switch to another shader. Their Keywords list shows the shader keywords
 that are on; to turn on one that isn't listed, type its name under the list and press Add.
 
+![Picking a new shader for Duna's scaled material](images/guide-shaderpick.png)
+
+![The Keywords list under Shader properties](images/guide-keywords.png)
+
 ## Scaled space maps
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export Scaled Maps opens
 its Texture Exporter with the current body selected, for exporting height, colour and normal
 maps.
+
+![BurstPQS's Texture Exporter with Duna selected](images/guide-burstpqs.png)
