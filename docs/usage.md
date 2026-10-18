@@ -80,4 +80,4 @@ that are on; to turn on one that isn't listed, type its name under the list and 
 ## Scaled space maps
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export Scaled Maps opens
 its Texture Exporter with the current body selected, for exporting height, colour and normal
-maps. It takes the place of Kopernicus's slower Rebuild ScaledSpace Textures action.
+maps.
