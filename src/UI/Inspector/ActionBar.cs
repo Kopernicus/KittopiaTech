@@ -17,13 +17,12 @@ namespace KittopiaTech.UI.Inspector;
 public static class ActionBar
 {
     /// <summary>Actions KittopiaTech replaces with its own features, besides those apply hooks replace.</summary>
-    static readonly HashSet<(Type, string)> Hidden = [(typeof(Body), nameof(Body.ExportConfig))];
-
-    /// <summary>Kopernicus's own PQS texture baker, which "Export scaled maps" replaces when BurstPQS is installed.</summary>
-    static bool Superseded(ActionSchema action) =>
-        action.Method.DeclaringType == typeof(ScaledVersionLoader)
-        && action.Method.Name == nameof(ScaledVersionLoader.RebuildTextures)
-        && Export.BurstPQSExporter.Available;
+    static readonly HashSet<(Type, string)> Hidden =
+    [
+        (typeof(Body), nameof(Body.ExportConfig)),
+        // Kopernicus's slow PQS texture baker; Export scaled maps uses BurstPQS's instead.
+        (typeof(ScaledVersionLoader), nameof(ScaledVersionLoader.RebuildTextures)),
+    ];
 
     /// <summary>Actions that can't be undone but aren't marked Destructive upstream.</summary>
     static readonly HashSet<(Type, string)> Confirm = [(typeof(Body), nameof(Body.CreateBarycenter))];
@@ -36,7 +35,7 @@ public static class ActionBar
         var actions = TypeSchema
             .Get(owner.GetType())
             .Actions.Where(a => a.Method.GetParameters().Length == 0)
-            .Where(a => !Hidden.Contains((a.Method.DeclaringType, a.Method.Name)) && !Superseded(a))
+            .Where(a => !Hidden.Contains((a.Method.DeclaringType, a.Method.Name)))
             .Where(a => !ApplyHooks.Replaces(a.Method))
             .ToList();
         if (actions.Count == 0)
