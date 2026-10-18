@@ -97,9 +97,12 @@ show as checkboxes or dropdowns.
 
 ![Jool's scaled material under Shader properties](images/guide-shader.png)
 
-For shaders Kopernicus has no loader for, such as a planet pack's own, you can click the
-shader's name to switch to another shader. Their Keywords list shows the shader keywords
-that are on; to turn on one that isn't listed, type its name under the list and press Add.
+Click a material's shader to switch it to any shader loaded in the game, including a planet
+pack's own. Properties both shaders have keep their values.
+
+For shaders Kopernicus has no loader for, Shader properties also has a Keywords list showing
+the shader keywords that are on; to turn on one that isn't listed, type its name under the
+list and press Add.
 
 ![Picking a new shader for Duna's scaled material](images/guide-shaderpick.png)
 
