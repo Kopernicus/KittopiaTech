@@ -20,7 +20,7 @@ public static class ActionBar
     static readonly HashSet<(Type, string)> Hidden =
     [
         (typeof(Body), nameof(Body.ExportConfig)),
-        // Kopernicus's slow PQS texture baker; Export scaled maps uses BurstPQS's instead.
+        // Kopernicus's slow PQS texture baker; Export Scaled Maps uses BurstPQS's instead.
         (typeof(ScaledVersionLoader), nameof(ScaledVersionLoader.RebuildTextures)),
     ];
 
@@ -47,7 +47,7 @@ public static class ActionBar
         }
         if (isBody)
         {
-            var delete = DebugSkin.CreateButton(row.transform, "Delete body");
+            var delete = DebugSkin.CreateButton(row.transform, DeleteBodyButton.Label);
             delete.name = "DeleteBody";
             EditorLayout.Compact(delete.gameObject);
             delete.gameObject.AddComponent<DeleteBodyButton>().Setup(delete, scope.Context.CelestialBody);
@@ -59,6 +59,7 @@ public static class ActionBar
 public sealed class DeleteBodyButton : MonoBehaviour
 {
     const float ConfirmSeconds = 3f;
+    internal const string Label = "Delete Body";
 
     Button button;
     TextMeshProUGUI label;
@@ -82,7 +83,7 @@ public sealed class DeleteBodyButton : MonoBehaviour
         if (armedUntil > 0f && Time.unscaledTime > armedUntil)
         {
             armedUntil = 0f;
-            label.text = "Delete body";
+            label.text = Label;
         }
     }
 
@@ -101,7 +102,7 @@ public sealed class DeleteBodyButton : MonoBehaviour
         }
         catch (Exception e)
         {
-            label.text = "Delete body";
+            label.text = Label;
             button.interactable = false;
             UnityEngine.Debug.LogError($"[KittopiaTech] Deleting {body.bodyName} failed: {e}");
         }

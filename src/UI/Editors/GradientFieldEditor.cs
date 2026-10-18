@@ -159,7 +159,7 @@ public sealed class GradientFieldEditor : FieldEditor<GradientRamp>
         removeButton = DebugSkin.CreateButton(row.transform, "Remove", RemoveSelected);
         EditorLayout.Compact(removeButton.gameObject, 0f);
         removeButton.GetComponent<LayoutElement>().preferredWidth = 70f;
-        var add = DebugSkin.CreateButton(row.transform, "Add stop", AddStop);
+        var add = DebugSkin.CreateButton(row.transform, "Add Stop", AddStop);
         EditorLayout.Compact(add.gameObject, 0f);
         add.GetComponent<LayoutElement>().preferredWidth = 80f;
     }

@@ -28,22 +28,22 @@ the game closes.
 Text holding a localization key such as `#autoLOC_900101` shows what the key reads in game
 when hovered.
 
-New body, under the body list, copies a body as it is now under a new name. Pick the body to
+Add Body, under the body list, copies a body as it is now under a new name. Pick the body to
 copy as its Template and, optionally, another body for it to orbit; by default it orbits what
 the template orbits, half a turn ahead of it. Around another body it starts halfway out to
 that body's sphere of influence. The copy leaves out what other mods add to bodies (they
 configure bodies by name and don't know the copy), any space centre, and its template's UBIs.
-Its Export patch writes a new Body using the template's Template node, then the patch
+Its Export Patch writes a new Body using the template's Template node, then the patch
 against that stock body.
 
-Delete body, at the bottom of a body's fields, removes it after a second click. It can't
+Delete Body, at the bottom of a body's fields, removes it after a second click. It can't
 delete stars, the home world, bodies with moons or bodies with vessels around or on them.
 
 New and deleted bodies last until the game closes; nothing is written to the body's config.
 A deleted body's name stays taken until then. Don't save the game with vessels around a new
 body: the body won't be there when the save loads.
 
-Export body writes the whole body as a config; Export patch writes a ModuleManager patch
+Export Body writes the whole body as a config; Export Patch writes a ModuleManager patch
 holding only what differs from the body's Template. Both write
 `PluginData/Kopernicus/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
 load it), replacing the body's last export. Move the file into `GameData` to use it.
@@ -102,7 +102,7 @@ holds the keywords enabled on the material that no property sets, each with a ch
 Unity can't list every keyword a shader has, so to turn on one that isn't listed, type its
 name under the list and press Add. Keyword edits are staged like any other.
 
-With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
+With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export Scaled Maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for
 exporting height, colour and normal maps. It replaces Kopernicus's slower Rebuild
 ScaledSpace Textures action, which KittopiaTech doesn't show.

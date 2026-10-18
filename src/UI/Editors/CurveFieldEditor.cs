@@ -194,7 +194,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         DebugSkin.CreateSpacer(header.transform, 0f).minWidth = EditorLayout.RowHeight;
 
         DebugSkin.CreateScrollView(popout.Content, out table);
-        var add = DebugSkin.CreateButton(popout.Content, "Add key", AddKey);
+        var add = DebugSkin.CreateButton(popout.Content, "Add Key", AddKey);
         EditorLayout.Compact(add.gameObject);
 
         keysRaw = [];

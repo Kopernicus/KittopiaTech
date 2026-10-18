@@ -108,9 +108,9 @@ public class InspectorWindow : MonoBehaviour
             placeholder.text = "Search bodies";
         search.onValueChanged.AddListener(FilterTree);
         DebugSkin.CreateScrollView(tree.transform, out treeContent);
-        var newBody = DebugSkin.CreateButton(tree.transform, "New body", ToggleNewBody);
-        newBody.name = "NewBody";
-        Tooltip.Attach(newBody.gameObject, "Copy a body under a new name, until the game closes");
+        var addBody = DebugSkin.CreateButton(tree.transform, "Add Body", ToggleAddBody);
+        addBody.name = "AddBody";
+        Tooltip.Attach(addBody.gameObject, "Copy a body under a new name, until the game closes");
 
         DebugSkin.CreateSeparator(split.transform, vertical: true);
 
@@ -131,9 +131,9 @@ public class InspectorWindow : MonoBehaviour
     {
         var footer = DebugSkin.CreateHorizontalLayout(content, 6f, controlWidth: true);
         footer.name = "Footer";
-        var exportBody = DebugSkin.CreateButton(footer.transform, "Export body", () => Export(patch: false));
-        var exportPatch = DebugSkin.CreateButton(footer.transform, "Export patch", () => Export(patch: true));
-        exportMapsButton = DebugSkin.CreateButton(footer.transform, "Export scaled maps", () => BurstPQSExporter.Open(Body));
+        var exportBody = DebugSkin.CreateButton(footer.transform, "Export Body", () => Export(patch: false));
+        var exportPatch = DebugSkin.CreateButton(footer.transform, "Export Patch", () => Export(patch: true));
+        exportMapsButton = DebugSkin.CreateButton(footer.transform, "Export Scaled Maps", () => BurstPQSExporter.Open(Body));
         Tooltip.Attach(exportMapsButton.gameObject, "Opens BurstPQS's Texture Exporter for this body");
         exportMapsTooltip = exportMapsButton.GetComponent<Tooltip>();
         pendingLabel = DebugSkin.CreateLabel(footer.transform, "");
@@ -165,14 +165,14 @@ public class InspectorWindow : MonoBehaviour
         exportLabel.transform.parent.gameObject.SetActive(text != null);
     }
 
-    Popout newBodyPopout;
+    Popout addBodyPopout;
 
-    void ToggleNewBody()
+    void ToggleAddBody()
     {
-        if (newBodyPopout != null)
-            newBodyPopout.Close();
+        if (addBodyPopout != null)
+            addBodyPopout.Close();
         else
-            newBodyPopout = NewBodyForm.Open(this);
+            addBodyPopout = AddBodyForm.Open(this);
     }
 
     void ToggleHistory()
@@ -201,7 +201,7 @@ public class InspectorWindow : MonoBehaviour
 
             if (path == null)
             {
-                ShowStatus(warning ?? "No Template to patch against; use Export body", error: true);
+                ShowStatus(warning ?? "No Template to patch against; use Export Body", error: true);
                 return;
             }
             ShowStatus($"Saved {path}{skipped}" + (warning != null ? $"\n{warning}" : ""));

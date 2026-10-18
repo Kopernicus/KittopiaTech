@@ -11,7 +11,7 @@ using UnityEngine.UI;
 namespace KittopiaTech.UI;
 
 /// <summary>A pop-out that copies a body under a new name, optionally orbiting another body.</summary>
-public sealed class NewBodyForm : MonoBehaviour
+public sealed class AddBodyForm : MonoBehaviour
 {
     InspectorWindow window;
     Popout popout;
@@ -25,8 +25,8 @@ public sealed class NewBodyForm : MonoBehaviour
 
     public static Popout Open(InspectorWindow window)
     {
-        var popout = Popout.Open(window, "New body", new Vector2(380f, 190f));
-        var form = popout.gameObject.AddComponent<NewBodyForm>();
+        var popout = Popout.Open(window, "Add Body", new Vector2(380f, 190f));
+        var form = popout.gameObject.AddComponent<AddBodyForm>();
         form.window = window;
         form.popout = popout;
         form.template = window.Body != null && window.Body.orbitDriver != null ? window.Body : null;
