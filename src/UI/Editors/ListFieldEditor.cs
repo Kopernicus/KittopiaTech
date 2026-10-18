@@ -33,9 +33,6 @@ public sealed class ListFieldEditor : FieldEditor<object>
     Transform items;
 
     [SerializeField]
-    TMP_Dropdown typePicker;
-
-    [SerializeField]
     Button addButton;
 
     [SerializeField]
@@ -48,7 +45,8 @@ public sealed class ListFieldEditor : FieldEditor<object>
     readonly List<IValueSource> itemSources = [];
     int builtCount = -1;
     Type elementType;
-    Type[] concreteTypes;
+    Dictionary<string, Type> concreteTypes; // by name, when Add asks which type
+    Popout typePopout;
 
     public override FieldLayout Layout => FieldLayout.Wide;
 
@@ -62,8 +60,6 @@ public sealed class ListFieldEditor : FieldEditor<object>
         items = DebugSkin.CreateVerticalLayout(content, 2f).transform;
 
         var bar = DebugSkin.CreateHorizontalLayout(content, 4f, controlWidth: true);
-        typePicker = DebugSkin.CreateDropdown(bar.transform);
-        EditorLayout.Compact(typePicker.gameObject);
         addButton = DebugSkin.CreateButton(bar.transform, "Add");
         addButton.name = "Add";
         EditorLayout.Compact(addButton.gameObject, 0f);
@@ -77,7 +73,7 @@ public sealed class ListFieldEditor : FieldEditor<object>
             expanded = !expanded;
             Refresh();
         });
-        addButton.onClick.AddListener(Add);
+        addButton.onClick.AddListener(OnAddClicked);
         resetButton.onClick.AddListener(() => order?.Reset());
     }
 
@@ -85,15 +81,15 @@ public sealed class ListFieldEditor : FieldEditor<object>
     {
         var listType = Source.ValueType;
         elementType = listType.IsGenericType ? listType.GetGenericArguments()[0] : typeof(object);
-        concreteTypes = Structure.NeedsTypePicker(elementType)
-            ? TypeSchema.GetConcreteTypes(elementType)
-            : null;
-
-        typePicker.gameObject.SetActive(concreteTypes != null);
-        if (concreteTypes != null)
+        concreteTypes = null;
+        if (Structure.NeedsTypePicker(elementType))
         {
-            typePicker.ClearOptions();
-            typePicker.AddOptions(concreteTypes.Select(t => t.Name).ToList());
+            // Short names, unless two types share one.
+            var types = TypeSchema.GetConcreteTypes(elementType);
+            concreteTypes = types
+                .GroupBy(t => t.Name)
+                .SelectMany(g => g.Count() == 1 ? g.Select(t => (t.Name, t)) : g.Select(t => (t.FullName, t)))
+                .ToDictionary(e => e.Item1, e => e.Item2);
         }
         addButton.interactable = Structure.CanCreate(elementType);
         live = list = null;
@@ -210,9 +206,29 @@ public sealed class ListFieldEditor : FieldEditor<object>
         Source.Scope.Invalidate();
     }
 
-    void Add()
+    /// <summary>Adds an item, first asking which type when the list holds several.</summary>
+    void OnAddClicked()
     {
-        var type = concreteTypes != null ? concreteTypes[typePicker.value] : elementType;
+        if (concreteTypes == null)
+        {
+            Add(elementType);
+            return;
+        }
+        if (typePopout != null)
+        {
+            typePopout.Close();
+            return;
+        }
+        var names = concreteTypes.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToArray();
+        typePopout = AssetPicker.OpenList(this, $"Add to {Source.Label}", names, null, name =>
+        {
+            if (concreteTypes.TryGetValue(name, out var type))
+                Add(type);
+        });
+    }
+
+    void Add(Type type)
+    {
         object created;
         try
         {

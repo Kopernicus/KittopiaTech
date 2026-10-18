@@ -40,6 +40,7 @@ public sealed class AssetPicker : MonoBehaviour
     static readonly Dictionary<string, string[]> Indexes = [];
 
     string[] entries;
+    bool isList;
     AssetKind kind;
     TMP_InputField search;
     TextMeshProUGUI status;
@@ -65,10 +66,11 @@ public sealed class AssetPicker : MonoBehaviour
 
     /// <summary>
     /// Opens a picker over a list of names that aren't files, such as bodies or shaders. Short
-    /// lists are browsed, so it starts with every name shown and the current one selected.
+    /// lists are browsed, so it starts with every name shown and the current one selected, and
+    /// Enter picks the top match since only listed names make sense.
     /// </summary>
     public static Popout OpenList(Component owner, string title, string[] entries, string initial, Action<string> onPick) =>
-        Open(owner, title, AssetKind.File, entries, initial, onPick, searchInitial: false);
+        Open(owner, title, AssetKind.File, entries, initial, onPick, isList: true);
 
     static Popout Open(
         Component owner,
@@ -77,7 +79,7 @@ public sealed class AssetPicker : MonoBehaviour
         string[] entries,
         string initial,
         Action<string> onPick,
-        bool searchInitial = true
+        bool isList = false
     )
     {
         var popout = Popout.Open(owner, title, new Vector2(460f, kind == AssetKind.File ? 560f : 720f));
@@ -86,10 +88,11 @@ public sealed class AssetPicker : MonoBehaviour
         picker.onPick = onPick;
         picker.kind = kind;
         picker.entries = entries;
+        picker.isList = isList;
         picker.Build(popout.Content);
 
         // Start on the current value, previewed if it's in the list.
-        picker.search.text = searchInitial ? initial ?? "" : "";
+        picker.search.text = isList ? "" : initial ?? "";
         picker.Filter(picker.search.text);
         var current = picker.entries.FirstOrDefault(e => string.Equals(e, initial, StringComparison.OrdinalIgnoreCase));
         if (current != null)
@@ -101,10 +104,11 @@ public sealed class AssetPicker : MonoBehaviour
     {
         search = DebugSkin.CreateInputField(content);
         search.onValueChanged.AddListener(Filter);
-        search.onSubmit.AddListener(text => Pick(selected ?? text));
+        search.onSubmit.AddListener(text => Pick(selected ?? (isList ? TopMatch() : text)));
 
         DebugSkin.CreateScrollView(content, out var list);
-        for (int i = 0; i < MaxRows; i++)
+        int rowCount = isList ? entries.Length : MaxRows;
+        for (int i = 0; i < rowCount; i++)
         {
             var button = DebugSkin.CreateButton(list, "");
             button.GetComponent<LayoutElement>().minHeight = 22f;
@@ -175,6 +179,9 @@ public sealed class AssetPicker : MonoBehaviour
         HighlightSelected();
     }
 
+    string TopMatch() =>
+        rows.Count > 0 && rows[0].gameObject.activeSelf ? rows[0].GetComponentInChildren<TextMeshProUGUI>().text : null;
+
     static readonly Color SelectedRowColor = new(0.75f, 0.85f, 1f);
 
     void HighlightSelected()
@@ -203,6 +210,8 @@ public sealed class AssetPicker : MonoBehaviour
 
     void Pick(string path)
     {
+        if (path == null)
+            return;
         onPick(path);
         popout.Close();
     }

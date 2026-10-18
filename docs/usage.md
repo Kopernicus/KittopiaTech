@@ -10,7 +10,8 @@ can edit it, but it stays amber until Apply rebuilds it; Discard removes it agai
 Removing a node or item is staged too: a node shows "removed on Apply" with an Undo button,
 and a list hides the item and counts it in its header until Apply, Reset or Discard. Apply
 destroys it, keeping a copy as config so History can rebuild it. Removing something created
-since the last Apply happens straight away.
+since the last Apply happens straight away. In lists that hold several types, such as a
+PQS's Mods, Add opens a searchable list of the types to pick from; Enter picks the top match.
 
 History lists the last 40 Applies made to the body since the game started, newest first,
 under an Original entry for the body as loaded (once there are more, the oldest kept entry is
