@@ -101,6 +101,11 @@ public class InspectorWindow : MonoBehaviour
         var treeLayout = tree.gameObject.AddComponent<LayoutElement>();
         treeLayout.preferredWidth = 190f;
         treeLayout.flexibleWidth = 0f;
+        var search = DebugSkin.CreateInputField(tree.transform);
+        search.name = "Search";
+        if (search.placeholder is TMP_Text placeholder)
+            placeholder.text = "Search bodies";
+        search.onValueChanged.AddListener(FilterTree);
         DebugSkin.CreateScrollView(tree.transform, out treeContent);
 
         DebugSkin.CreateSeparator(split.transform, vertical: true);
@@ -242,12 +247,32 @@ public class InspectorWindow : MonoBehaviour
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.margin = new Vector4(6f, 0f, 6f, 0f);
         treeLabels[body] = label;
+        treeRows[body] = row.gameObject;
 
         var children = body.orbitingBodies
             .Where(b => b != body)
             .OrderBy(b => b.orbit?.semiMajorAxis ?? 0.0);
         foreach (var child in children)
             AddTreeEntry(child, depth + 1);
+    }
+
+    readonly Dictionary<CelestialBody, GameObject> treeRows = [];
+
+    /// <summary>Shows the bodies whose name contains every word typed, and what they orbit.</summary>
+    void FilterTree(string text)
+    {
+        var terms = text.ToLowerInvariant().Split([' '], System.StringSplitOptions.RemoveEmptyEntries);
+        var shown = new HashSet<CelestialBody>();
+        foreach (var (body, label) in treeLabels.Select(kv => (kv.Key, kv.Value)))
+        {
+            string name = label.text.ToLowerInvariant();
+            if (!terms.All(name.Contains))
+                continue;
+            // Walk up to the root so a match keeps its place in the tree.
+            for (var b = body; b != null && shown.Add(b); b = b.referenceBody == b ? null : b.referenceBody) { }
+        }
+        foreach (var (body, row) in treeRows.Select(kv => (kv.Key, kv.Value)))
+            row.SetActive(shown.Contains(body));
     }
 
     public void Select(CelestialBody body)
