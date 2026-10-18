@@ -28,8 +28,10 @@ Text holding a localization key such as `#autoLOC_900101` shows what the key rea
 when hovered.
 
 Export body writes the whole body as a config; Export patch writes a ModuleManager patch
-holding only what differs from the body's Template. Both land in
-`GameData/KittopiaTech/PluginData/<body>/<timestamp>/`.
+holding only what differs from the body's Template. Both write
+`GameData/KittopiaTech/PluginData/Kopernicus/<body>.cfg`, replacing the body's last export,
+and copy its full path. KSP doesn't load configs under `PluginData`, so move the file out
+to use it.
 
 Hovering a field's label shows its documentation, if the mod that defines it provides
 any (see [Extending KittopiaTech](extending.md#field-docs)).

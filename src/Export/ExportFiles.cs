@@ -1,11 +1,10 @@
-using System;
 using System.IO;
 using KittopiaTech.Model;
 using UnityEngine;
 
 namespace KittopiaTech.Export;
 
-/// <summary>Writes exports to <c>GameData/KittopiaTech/PluginData/&lt;body&gt;/&lt;time&gt;/&lt;body&gt;.cfg</c>.</summary>
+/// <summary>Writes exports to <c>GameData/KittopiaTech/PluginData/Kopernicus/&lt;body&gt;.cfg</c>.</summary>
 public static class ExportFiles
 {
     const string Pass = "FOR[KittopiaTech]";
@@ -32,10 +31,8 @@ public static class ExportFiles
 
     static string Save(string bodyName, ConfigNode root)
     {
-        string relative = Path.Combine(
-            Path.Combine("GameData/KittopiaTech/PluginData", bodyName),
-            Path.Combine(DateTime.Now.ToString("yyyy-MM-dd_HHmmss"), bodyName + ".cfg")
-        );
+        // Replaces the body's previous export, whichever kind it was.
+        string relative = Path.Combine("GameData/KittopiaTech/PluginData/Kopernicus", bodyName + ".cfg");
         string path = Path.Combine(KSPUtil.ApplicationRootPath, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(path));
         root.Save(path);
