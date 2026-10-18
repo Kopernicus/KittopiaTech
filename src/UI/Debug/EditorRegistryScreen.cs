@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using KittopiaTech.UI.Editors;
 using KSP.UI.Screens.DebugToolbar;
 using UnityEngine;
@@ -14,6 +16,9 @@ internal static class EditorRegistryScreen
 {
     const string ScreenName = HotReloadSupport.ObjectPrefix + "Editors";
 
+    static readonly FieldInfo OpenedScreens =
+        typeof(DebugScreen).GetField("screens", BindingFlags.NonPublic | BindingFlags.Instance);
+
     public static void Register()
     {
         var screens = DebugScreenSpawner.Instance?.debugScreens?.screens;
@@ -22,6 +27,11 @@ internal static class EditorRegistryScreen
 
         // A hot reload leaves the old entry behind, pointing at a destroyed prefab.
         screens.RemoveAll(s => s.name == ScreenName);
+
+        // The Alt+F12 window also caches the screens it opened and compares their names when a
+        // tab is picked, so a destroyed instance of ours would break every later tab.
+        foreach (var debugScreen in Resources.FindObjectsOfTypeAll<DebugScreen>())
+            (OpenedScreens.GetValue(debugScreen) as List<RectTransform>)?.RemoveAll(s => s == null);
 
         var prefab = new GameObject(ScreenName, typeof(RectTransform));
         prefab.SetActive(false);
