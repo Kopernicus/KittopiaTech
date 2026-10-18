@@ -1,7 +1,7 @@
 # Extending KittopiaTech
 Other mods can add editors, config writers and rebuild hooks without changing KittopiaTech;
-they're found by scanning loaded assemblies for these attributes. The Alt+F12 "Kittopia
-Editors" page lists every registered editor.
+they're found by scanning loaded assemblies for these attributes. The "Kittopia Editors"
+page, under Kittopia in the Alt+F12 menu, lists every registered editor.
 
 ## Field editors
 ```cs

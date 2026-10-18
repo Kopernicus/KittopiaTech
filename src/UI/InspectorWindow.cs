@@ -48,6 +48,19 @@ public class InspectorWindow : MonoBehaviour
             window.gameObject.SetActive(show);
     }
 
+    /// <summary>Shows every window in front of the Alt+F12 menu, opening one if none exist.</summary>
+    public static void Show()
+    {
+        Windows.RemoveAll(w => w == null);
+        if (Windows.Count == 0)
+            Open(FlightGlobals.currentMainBody ?? FlightGlobals.GetHomeBody());
+        foreach (var window in Windows)
+        {
+            window.gameObject.SetActive(true);
+            window.transform.SetAsLastSibling();
+        }
+    }
+
     public static InspectorWindow Open(CelestialBody body)
     {
         var parts = DebugSkin.CreateWindow("Kittopia", DebugSkin.Canvas, new Vector2(900f, 640f));

@@ -20,7 +20,7 @@ public class KittopiaAddon : MonoBehaviour
             Destroy(this);
             return;
         }
-        EditorRegistryScreen.Register();
+        DebugMenu.Register();
     }
 
     void Update()

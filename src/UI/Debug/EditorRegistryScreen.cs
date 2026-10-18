@@ -1,10 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using KittopiaTech.UI.Editors;
-using KSP.UI.Screens.DebugToolbar;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace KittopiaTech.UI.Debug;
 
@@ -14,41 +10,12 @@ namespace KittopiaTech.UI.Debug;
 /// </summary>
 internal static class EditorRegistryScreen
 {
-    const string ScreenName = HotReloadSupport.ObjectPrefix + "Editors";
-
-    static readonly FieldInfo OpenedScreens =
-        typeof(DebugScreen).GetField("screens", BindingFlags.NonPublic | BindingFlags.Instance);
-
-    public static void Register()
+    /// <summary>Fills in the page <see cref="DebugMenu"/> registers for this list.</summary>
+    public static RectTransform Build(RectTransform screen)
     {
-        var screens = DebugScreenSpawner.Instance?.debugScreens?.screens;
-        if (screens == null)
-            return;
-
-        // A hot reload leaves the old entry behind, pointing at a destroyed prefab.
-        screens.RemoveAll(s => s.name == ScreenName);
-
-        // The Alt+F12 window also caches the screens it opened and compares their names when a
-        // tab is picked, so a destroyed instance of ours would break every later tab.
-        foreach (var debugScreen in Resources.FindObjectsOfTypeAll<DebugScreen>())
-            (OpenedScreens.GetValue(debugScreen) as List<RectTransform>)?.RemoveAll(s => s == null);
-
-        var prefab = new GameObject(ScreenName, typeof(RectTransform));
-        prefab.SetActive(false);
-        Object.DontDestroyOnLoad(prefab);
-        var rect = (RectTransform)prefab.transform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-        var vlg = prefab.AddComponent<VerticalLayoutGroup>();
-        vlg.childControlWidth = vlg.childControlHeight = true;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-        vlg.padding = new RectOffset(8, 8, 8, 8);
-
-        DebugSkin.CreateHeader(prefab.transform, "Field editors");
-        DebugSkin.CreateLabel(prefab.transform, "Higher priority wins; ties go to the most derived type.");
-        DebugSkin.CreateScrollView(prefab.transform, out var content);
+        DebugSkin.CreateHeader(screen, "Field editors");
+        DebugSkin.CreateLabel(screen, "Higher priority wins; ties go to the most derived type.");
+        DebugSkin.CreateScrollView(screen, out var content);
 
         var registrations = FieldEditorRegistry
             .Registrations.OrderBy(r => r.Target.FullName)
@@ -64,15 +31,7 @@ internal static class EditorRegistryScreen
             }
         }
 
-        screens.Add(
-            new AddDebugScreens.ScreenWrapper
-            {
-                parentName = null,
-                name = ScreenName,
-                text = "Kittopia Editors",
-                screen = rect,
-            }
-        );
+        return screen;
     }
 
     static void Line(Transform parent, string text)

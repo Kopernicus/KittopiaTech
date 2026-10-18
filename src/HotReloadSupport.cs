@@ -44,7 +44,7 @@ internal static class HotReloadSupport
 
         if (!DebugSkin.Initialize())
             return;
-        EditorRegistryScreen.Register();
+        DebugMenu.Register();
 
         foreach (var state in windows)
         {
