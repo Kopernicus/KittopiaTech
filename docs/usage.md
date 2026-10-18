@@ -66,8 +66,7 @@ press Enter to use what you typed. Clicking a texture or map thumbnail opens a l
 preview. Textures and on-demand maps that aren't loaded yet are sampled from their file for
 thumbnails; only the preview window loads the full texture, and on-demand maps stay
 unloaded. Previews show a texture's colour without its alpha, since alpha often holds
-something else, like gloss. This needs KittopiaTech's shader bundle, which is only built for
-Windows so far; elsewhere, previews show alpha as transparency.
+something else, like gloss.
 
 Curves show a small graph; click its button for a larger one. Drag keys on the graph to
 move them; dragging one past its neighbours reorders the keys, and holding it at the edge of
