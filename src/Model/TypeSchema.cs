@@ -72,10 +72,13 @@ public sealed class TypeSchema
         var index = new Dictionary<string, int>();
         foreach (var level in Hierarchy(type))
         {
+            // Reflection lists each kind in declaration order; put fields first. Not MetadataToken:
+            // Unity's Mono aborts the game reading a field's token on a Reflection.Emit type, like
+            // Kopernicus Expansion's Regional mods.
             var declared = level
                 .GetMembers(MemberFlags)
                 .Where(m => m is FieldInfo or PropertyInfo)
-                .OrderBy(m => m.MetadataToken);
+                .OrderBy(m => m is FieldInfo ? 0 : 1);
             foreach (var member in declared)
             {
                 var targets = (ParserTarget[])
@@ -99,7 +102,6 @@ public sealed class TypeSchema
         Actions = methods
             .Select(m => (m, attr: m.GetCustomAttribute<KittopiaAction>()))
             .Where(p => p.attr != null)
-            .OrderBy(p => p.m.MetadataToken)
             .Select(p => new ActionSchema(p.m, p.attr))
             .ToList();
         Destructor = methods.FirstOrDefault(m => m.IsDefined(typeof(KittopiaDestructor), true));
