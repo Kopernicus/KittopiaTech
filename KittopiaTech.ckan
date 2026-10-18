@@ -6,6 +6,10 @@ tags:
 depends:
   - name: Kopernicus
 
+# Export Scaled Maps opens BurstPQS's Texture Exporter.
+recommends:
+  - name: BurstPQS
+
 # Lets KittopiaTech rebuild its windows when KittopiaTech or Kopernicus is hot reloaded.
 suggests:
   - name: HotReloadKSP
