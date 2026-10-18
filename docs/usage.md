@@ -47,4 +47,5 @@ name under the list and press Add. Keyword edits are staged like any other.
 
 With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export scaled maps
 opens its Texture Exporter in the Alt+F12 menu with the current body selected, for
-exporting height, colour and normal maps.
+exporting height, colour and normal maps. It replaces Kopernicus's slower Rebuild
+ScaledSpace Textures action, which is hidden while BurstPQS is installed.
