@@ -1,11 +1,10 @@
-using KittopiaTech.UI;
 using KittopiaTech.UI.Debug;
 using UnityEngine;
 
 namespace KittopiaTech;
 
 /// <summary>
-/// Lives from the first main menu onwards and opens the inspector on Ctrl+P in every scene.
+/// Sets up the UI at the first main menu; the inspector opens from the Alt+F12 menu.
 /// </summary>
 [KSPAddon(KSPAddon.Startup.MainMenu, once: true)]
 public class KittopiaAddon : MonoBehaviour
@@ -21,12 +20,5 @@ public class KittopiaAddon : MonoBehaviour
             return;
         }
         DebugMenu.Register();
-    }
-
-    void Update()
-    {
-        bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-        if (ctrl && Input.GetKeyDown(KeyCode.P))
-            InspectorWindow.Toggle();
     }
 }

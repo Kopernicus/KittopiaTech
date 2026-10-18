@@ -1,6 +1,6 @@
 # Using KittopiaTech
-Click Kittopia in the Alt+F12 menu, or press Ctrl+P, in any scene from the main menu onwards
-to open an inspector window. Pick a
+Click Kittopia in the Alt+F12 menu, in any scene from the main menu onwards, to open an
+inspector window. Pick a
 body on the left (type in the box above the list to show only bodies whose names contain
 those words, with what they orbit) and edit its Kopernicus configuration on the right. Edits are staged:
 modified rows turn amber, and nothing reaches the planet until you press Apply. Apply also

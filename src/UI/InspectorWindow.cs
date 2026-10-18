@@ -33,21 +33,6 @@ public class InspectorWindow : MonoBehaviour
 
     public CelestialBody Body { get; private set; }
 
-    /// <summary>Shows or hides every window, opening one if none exist.</summary>
-    public static void Toggle()
-    {
-        Windows.RemoveAll(w => w == null);
-        if (Windows.Count == 0)
-        {
-            Open(FlightGlobals.currentMainBody ?? FlightGlobals.GetHomeBody());
-            return;
-        }
-
-        bool show = !Windows.Any(w => w.gameObject.activeSelf);
-        foreach (var window in Windows)
-            window.gameObject.SetActive(show);
-    }
-
     /// <summary>Shows every window in front of the Alt+F12 menu, opening one if none exist.</summary>
     public static void Show()
     {

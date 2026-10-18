@@ -88,7 +88,7 @@ internal static class DebugMenu
         var rect = CreateScreen(KittopiaName);
         rect.gameObject.AddComponent<ShowOnEnable>();
         DebugSkin.CreateHeader(rect, "Kittopia");
-        DebugSkin.CreateLabel(rect, "Click Kittopia in this list to open the editor window. Ctrl+P also shows or hides it.");
+        DebugSkin.CreateLabel(rect, "Click Kittopia in this list to open the editor window.");
         return rect;
     }
 
