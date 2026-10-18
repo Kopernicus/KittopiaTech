@@ -186,7 +186,7 @@ public class InspectorWindow : MonoBehaviour
                 ShowStatus(warning ?? "No Template to patch against; use Export body", error: true);
                 return;
             }
-            ShowStatus($"Saved {path} (full path copied){skipped}" + (warning != null ? $"\n{warning}" : ""));
+            ShowStatus($"Saved {path}{skipped}" + (warning != null ? $"\n{warning}" : ""));
             if (warning != null)
                 UnityEngine.Debug.LogWarning($"[KittopiaTech] Patch for {Body.name}: {warning}");
         }

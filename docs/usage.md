@@ -30,9 +30,8 @@ when hovered.
 
 Export body writes the whole body as a config; Export patch writes a ModuleManager patch
 holding only what differs from the body's Template. Both write
-`GameData/KittopiaTech/PluginData/Kopernicus/<body>.cfg`, replacing the body's last export,
-and copy its full path. KSP doesn't load configs under `PluginData`, so move the file out
-to use it.
+`PluginData/Kopernicus/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
+load it), replacing the body's last export. Move the file into `GameData` to use it.
 
 Hovering a field's label shows its documentation, if the mod that defines it provides
 any (see [Extending KittopiaTech](extending.md#field-docs)).
