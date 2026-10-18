@@ -29,14 +29,18 @@ public sealed class Popout : MonoBehaviour
         popout.Content = parts.Content;
         parts.CloseButton.onClick.AddListener(popout.Close);
 
-        // Open beside the owning window rather than on top of it.
+        // Open beside the owning window rather than on top of it: to the right, or the left if
+        // the right would leave the screen.
         var ownerWindow = owner.GetComponentInParent<InspectorWindow>();
         if (ownerWindow != null)
         {
             var rect = (RectTransform)parts.Window.transform;
             var ownerRect = (RectTransform)ownerWindow.transform;
-            rect.anchoredPosition =
-                ownerRect.anchoredPosition + new Vector2((ownerRect.rect.width + size.x) / 2f + 8f, 0f);
+            float offset = (ownerRect.rect.width + size.x) / 2f + 8f;
+            float halfCanvas = ((RectTransform)DebugSkin.Canvas).rect.width / 2f;
+            if (ownerRect.anchoredPosition.x + offset + size.x / 2f > halfCanvas)
+                offset = -offset;
+            rect.anchoredPosition = ownerRect.anchoredPosition + new Vector2(offset, 0f);
         }
 
         parts.Window.SetActive(true);
