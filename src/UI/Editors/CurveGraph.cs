@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using KittopiaTech.UI.Debug;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -122,7 +124,7 @@ public static class CurveGraph
         return (float)(step * power);
     }
 
-    static IEnumerable<float> Ticks(float min, float max)
+    public static IEnumerable<float> Ticks(float min, float max)
     {
         float step = Step(min, max);
         if (!(step > 0f))
@@ -147,6 +149,65 @@ public static class CurveGraph
     {
         for (int x = 0; x < width; x++)
             Set(pixels, width, height, x, y, color);
+    }
+}
+
+/// <summary>
+/// Tick labels outside a graph at its grid lines: values down its left edge and times along
+/// its bottom. The graph needs <see cref="Width"/> and <see cref="Height"/> of room there.
+/// </summary>
+public sealed class CurveAxes(RectTransform graph)
+{
+    public const float Width = 52f;
+    public const float Height = 16f;
+
+    static readonly Color LabelColor = new(0.64f, 0.65f, 0.67f);
+
+    readonly List<TextMeshProUGUI> times = [];
+    readonly List<TextMeshProUGUI> values = [];
+
+    public void Update(CurveView view)
+    {
+        Place(times, view.T0, view.T1, t => view.ToNormalized(t, 0f).x, vertical: false);
+        Place(values, view.V0, view.V1, v => view.ToNormalized(0f, v).y, vertical: true);
+    }
+
+    void Place(List<TextMeshProUGUI> labels, float min, float max, Func<float, float> position, bool vertical)
+    {
+        var ticks = CurveGraph.Ticks(min, max).ToList();
+        int decimals = Mathf.Clamp(-Mathf.FloorToInt(Mathf.Log10(CurveGraph.Step(min, max)) + 1e-4f), 0, 7);
+        while (labels.Count < ticks.Count)
+            labels.Add(CreateLabel(vertical));
+
+        for (int i = 0; i < labels.Count; i++)
+        {
+            var label = labels[i];
+            label.transform.parent.gameObject.SetActive(i < ticks.Count);
+            if (i >= ticks.Count)
+                continue;
+
+            label.text = ticks[i].ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture);
+            var rect = (RectTransform)label.transform.parent;
+            float p = position(ticks[i]);
+            rect.anchorMin = rect.anchorMax = vertical ? new Vector2(0f, p) : new Vector2(p, 0f);
+        }
+    }
+
+    TextMeshProUGUI CreateLabel(bool vertical)
+    {
+        var label = DebugSkin.CreateLabel(graph, "");
+        label.enableWordWrapping = false;
+        label.raycastTarget = false;
+        label.color = LabelColor;
+        label.fontSize *= 0.85f;
+        label.alignment = vertical ? TextAlignmentOptions.MidlineRight : TextAlignmentOptions.Top;
+
+        // Just outside the graph: left of it for values, under it for times.
+        var rect = (RectTransform)label.transform.parent;
+        rect.pivot = vertical ? new Vector2(1f, 0.5f) : new Vector2(0.5f, 1f);
+        rect.sizeDelta = vertical ? new Vector2(Width - 4f, Height) : new Vector2(Width * 1.5f, Height);
+        rect.anchoredPosition = vertical ? new Vector2(-4f, 0f) : new Vector2(0f, -1f);
+        return label;
     }
 }
 

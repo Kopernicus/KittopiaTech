@@ -42,7 +42,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
     RawImage graph;
     CurveGraphArea area;
     Texture2D graphTexture;
-    TextMeshProUGUI rangeLabel;
+    CurveAxes axes;
     TMP_InputField timeField, valueField, inField, outField;
     readonly List<Button> modeButtons = [];
     Button removeButton;
@@ -145,18 +145,8 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         int width = size.x > 1f ? Mathf.RoundToInt(size.x) : 500, height = size.y > 1f ? Mathf.RoundToInt(size.y) : 220;
         graphTexture = CurveGraph.Draw(graphTexture, keys, curve, view, width, height, selected);
         graph.texture = graphTexture;
-
-        float tStep = CurveGraph.Step(view.T0, view.T1), vStep = CurveGraph.Step(view.V0, view.V1);
-        rangeLabel.text =
-            $"time {F(view.T0)} to {F(view.T1)} (grid {F(tStep)}), value {F(view.V0)} to {F(view.V1)} (grid {F(vStep)})";
+        axes.Update(view);
         RefreshPanel();
-    }
-
-    /// <summary>About four significant figures, without exponents.</summary>
-    static string F(float x)
-    {
-        int decimals = x == 0f ? 0 : Mathf.Clamp(3 - Mathf.FloorToInt(Mathf.Log10(Mathf.Abs(x))), 0, 7);
-        return x.ToString("0." + new string('#', decimals), System.Globalization.CultureInfo.InvariantCulture);
     }
 
     void OpenPopout()
@@ -165,11 +155,20 @@ public sealed class CurveFieldEditor : FieldEditor<object>
             return;
 
         popout = Popout.Open(this, FieldPath, new Vector2(560f, 620f));
+        // The graph sits inside a frame that leaves room for the scales left of and below it.
+        var frame = new GameObject("GraphFrame", typeof(RectTransform));
+        frame.transform.SetParent(popout.Content, false);
+        var layout = frame.AddComponent<LayoutElement>();
+        layout.minHeight = layout.preferredHeight = 220f + CurveAxes.Height;
         var image = new GameObject("Graph", typeof(RectTransform));
-        image.transform.SetParent(popout.Content, false);
+        image.transform.SetParent(frame.transform, false);
+        var rect = (RectTransform)image.transform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = new Vector2(CurveAxes.Width, CurveAxes.Height);
+        rect.offsetMax = Vector2.zero;
         graph = image.AddComponent<RawImage>();
-        var layout = image.AddComponent<LayoutElement>();
-        layout.minHeight = layout.preferredHeight = 220f;
+        axes = new CurveAxes(rect);
         area = image.AddComponent<CurveGraphArea>();
         area.onPress = OnPress;
         area.onDrag = OnDrag;
@@ -182,11 +181,8 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         };
         built = false;
 
-        rangeLabel = DebugSkin.CreateLabel(popout.Content, "");
-        rangeLabel.enableWordWrapping = false;
-        rangeLabel.color = new Color(0.64f, 0.65f, 0.67f);
         var hint = DebugSkin.CreateLabel(popout.Content, "Drag keys to move or reorder them; hold one at an edge to widen the view. Double-click to add a key.");
-        hint.color = rangeLabel.color;
+        hint.color = new Color(0.64f, 0.65f, 0.67f);
         FitTextHeight.Attach(hint);
 
         modeButtons.Clear();
