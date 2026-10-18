@@ -187,6 +187,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         rangeLabel.color = new Color(0.64f, 0.65f, 0.67f);
         var hint = DebugSkin.CreateLabel(popout.Content, "Drag keys to move or reorder them; hold one at an edge to widen the view. Double-click to add a key.");
         hint.color = rangeLabel.color;
+        FitTextHeight.Attach(hint);
 
         modeButtons.Clear();
         BuildPanel(popout.Content);
