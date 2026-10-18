@@ -4,6 +4,13 @@ body on the left and edit its Kopernicus configuration on the right. Edits are s
 modified rows turn amber, and nothing reaches the planet until you press Apply. Apply also
 runs the matching rebuild (sphere, scaled mesh, orbit, rings).
 
+Creating a node or adding a list item (a ring, say) makes the object straight away so you
+can edit it, but it stays amber until Apply rebuilds it; Discard removes it again.
+Removing a node or item can't be discarded.
+
+Text holding a localization key such as `#autoLOC_900101` shows what the key reads in game
+when hovered.
+
 Export body writes the whole body as a config; Export patch writes a ModuleManager patch
 holding only what differs from the body's Template. Both land in
 `GameData/KittopiaTech/PluginData/<body>/<timestamp>/`.

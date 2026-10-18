@@ -67,6 +67,28 @@ public sealed class ListSlot(IList list, int index, Type elementType, Action wri
 }
 
 /// <summary>
+/// Marks an object a structural edit created. Writing it does nothing: the object is already
+/// live, and Apply only needs it as the owner whose hooks to run.
+/// </summary>
+public sealed class CreatedSlot(object created, string label, Action undo) : ISlot
+{
+    public object Owner { get; } = created;
+    public Action Undo { get; } = undo;
+    public string Label { get; } = label;
+    public MemberSchema Member => null;
+    public Type DeclaredType => typeof(object);
+    public bool CanWrite => true;
+
+    public object Read() => null;
+
+    public void Write(object raw) { }
+
+    public override bool Equals(object obj) => obj is CreatedSlot other && ReferenceEquals(Owner, other.Owner);
+
+    public override int GetHashCode() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Owner);
+}
+
+/// <summary>
 /// The order of a list's items, so reordering can be staged. The staged value is a reordered
 /// copy; writing it refills the live list in place, since list members are often readonly.
 /// </summary>

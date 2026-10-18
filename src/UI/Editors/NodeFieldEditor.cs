@@ -76,8 +76,15 @@ public sealed class NodeFieldEditor : FieldEditor<object>
         var type = concreteTypes != null ? concreteTypes[typePicker.value] : Source.ValueType;
         try
         {
-            WriteNow(Structure.Create(Source.Scope.Context, type));
+            var created = Structure.Create(Source.Scope.Context, type);
+            WriteNow(created);
             expanded = true;
+            var (slot, context) = (Source.Slot, Source.Scope.Context);
+            Source.Scope.MarkCreated(created, Source.Label, () =>
+            {
+                Structure.Destroy(context, created);
+                slot.Write(null);
+            });
         }
         catch (Exception e)
         {

@@ -61,6 +61,12 @@ public interface IEditScope
     /// <summary>Drops pending edits on objects reachable from <paramref name="root"/>.</summary>
     void DiscardWithin(object root);
 
+    /// <summary>
+    /// Records an object a structural edit just created, so it shows as pending until Apply
+    /// runs its hooks. Discard calls <paramref name="undo"/> to remove it again.
+    /// </summary>
+    void MarkCreated(object created, string label, Action undo);
+
     /// <summary>Whether a pending edit sits on <paramref name="node"/> or anywhere beneath it.</summary>
     bool HasPendingWithin(object node);
 }

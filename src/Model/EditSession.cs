@@ -60,7 +60,31 @@ public sealed class EditSession : IEditScope
 
     public IValueSource For(ISlot slot, ValueAdapter adapter) => new StagedValueSource(this, slot, adapter);
 
-    public void Invalidate() => Changed?.Invoke();
+    public void Invalidate()
+    {
+        PruneCreated();
+        Changed?.Invoke();
+    }
+
+    public void MarkCreated(object created, string label, Action undo)
+    {
+        var slot = new CreatedSlot(created, label, undo);
+        pending[slot] = new Pending
+        {
+            Slot = slot, Adapter = ValueAdapter.Identity(typeof(object)), Order = nextOrder++,
+        };
+        Changed?.Invoke();
+    }
+
+    /// <summary>Drops marks on created objects that have since been removed from the body.</summary>
+    void PruneCreated()
+    {
+        if (!pending.Keys.OfType<CreatedSlot>().Any())
+            return;
+        var reachable = Reachable(Context.Body);
+        foreach (var slot in pending.Keys.OfType<CreatedSlot>().Where(s => !reachable.Contains(s.Owner)).ToList())
+            pending.Remove(slot);
+    }
 
     internal bool TryGetPending(ISlot slot, out object value, out string error)
     {
@@ -155,12 +179,30 @@ public sealed class EditSession : IEditScope
 
     public void Discard()
     {
+        // Newest first, so objects created inside other new objects go before their parents.
+        PruneCreated();
+        foreach (var slot in pending.Values.OrderByDescending(p => p.Order).Select(p => p.Slot).OfType<CreatedSlot>())
+        {
+            try
+            {
+                using (ParseStateScope.For(Context))
+                    slot.Undo();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[KittopiaTech] Failed to remove new {slot.Label}: {e}");
+            }
+        }
         pending.Clear();
         Changed?.Invoke();
     }
 
     /// <summary>Writes every pending edit. Edits that fail stay pending with their error.</summary>
-    public void Apply() => Apply(pending.Values.ToList(), runHooks: true);
+    public void Apply()
+    {
+        PruneCreated();
+        Apply(pending.Values.ToList(), runHooks: true);
+    }
 
     /// <summary>Applies only the edits on objects reachable from <paramref name="root"/>.</summary>
     public void ApplyWithin(object root)
@@ -170,11 +212,14 @@ public sealed class EditSession : IEditScope
         Apply(pending.Values.Where(p => owners.Contains(p.Slot.Owner)).ToList(), runHooks: false);
     }
 
-    /// <summary>Drops edits on objects reachable from <paramref name="root"/>, e.g. before removing it.</summary>
+    /// <summary>
+    /// Drops edits on objects reachable from <paramref name="root"/>, e.g. before removing it.
+    /// Marks on created objects stay until the objects leave the body.
+    /// </summary>
     public void DiscardWithin(object root)
     {
         var owners = Reachable(root);
-        foreach (var edit in pending.Values.Where(p => owners.Contains(p.Slot.Owner)).ToList())
+        foreach (var edit in pending.Values.Where(p => p.Slot is not CreatedSlot && owners.Contains(p.Slot.Owner)).ToList())
             pending.Remove(edit.Slot);
         Changed?.Invoke();
     }
