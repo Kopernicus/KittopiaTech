@@ -1,109 +1,83 @@
 # Using KittopiaTech
-Click Kittopia in the Alt+F12 menu, in any scene from the main menu onwards, to open an
-inspector window. Pick a
-body on the left (type in the box above the list to show only bodies whose names contain
-those words, with what they orbit) and edit its Kopernicus configuration on the right. Edits are staged:
-modified rows turn amber, and nothing reaches the planet until you press Apply. Apply also
-runs the matching rebuild (sphere, scaled mesh, orbit, rings).
+Open the Alt+F12 menu and click Kittopia, in any scene from the main menu onwards. Pick a
+body on the left (type in the box above the list to filter it) and edit its Kopernicus
+configuration on the right.
 
-Creating a node or adding a list item (a ring, say) makes the object straight away so you
-can edit it, but it stays amber until Apply rebuilds it; Discard removes it again.
-Removing a node or item is staged too: a node shows "removed on Apply" with an Undo button,
-and a list hides the item and counts it in its header until Apply, Reset or Discard. Apply
-destroys it, keeping a copy as config so History can rebuild it. Removing something created
-since the last Apply happens straight away. In lists that hold several types, such as a
-PQS's Mods, Add opens a searchable list of the types to pick from; Enter picks the top match.
+Edits are staged: changed rows turn amber, and nothing happens to the planet until you press
+Apply. Discard throws away everything that hasn't been applied.
 
-History lists the last 40 Applies made to the body since the game started, newest first,
-under an Original entry for the body as loaded (once there are more, the oldest kept entry is
-as far back as you can go). Each body keeps its own history, and an open History window
-switches to it when you pick another body. Click one to put the body back the way it was after
-that Apply (with edits pending, click again to confirm discarding them); later entries stay,
-so you can step forward again until you apply something new. Restoring past an Apply that
-removed objects rebuilds them from the copies it kept, and earlier entries then apply to the
-rebuilt objects. Some edits can't be undone: running an action that asks for confirmation,
-or removing an object KittopiaTech can't create, so entries before them can no longer be
-restored. Restoring past an Apply that created objects
-removes them, and that Apply and those after it leave the list. History isn't saved when
-the game closes.
+## Keeping your changes
+Applied changes only last until the game closes. To keep them, export the body:
 
-Text holding a localization key such as `#autoLOC_900101` shows what the key reads in game
-when hovered.
+- **Export Body** writes the whole body as a Kopernicus config.
+- **Export Patch** writes a ModuleManager patch with only what you changed.
 
-Add Body, under the body list, copies a body as it is now under a new name. Pick the body to
-copy as its Template and, optionally, another body for it to orbit; by default it orbits what
-the template orbits, half a turn ahead of it. Around another body it starts halfway out to
-that body's sphere of influence. The copy leaves out what other mods add to bodies (they
-configure bodies by name and don't know the copy), any space centre, and its template's UBIs.
-Its Export Patch writes a new Body using the template's Template node, then the patch
-against that stock body.
+Both write `PluginData/Kittopia/<body>.cfg` in the KSP folder, replacing the body's last
+export. The game doesn't load files there; move the file into `GameData` to use it.
 
-Delete Body, at the bottom of a body's fields, removes it after a second click. It can't
-delete stars, the home world, bodies with moons or bodies with vessels around or on them.
+## Editing
+- Hover a field's label to see its documentation, where the mod that defines it provides
+  any. Hover a localization key such as `#autoLOC_900101` to see what it says in game.
+- Adding a node or list item, such as a ring, creates it straight away so you can edit it.
+  Discard removes it again.
+- Removing a node or item waits for Apply, and can be undone until then.
+- In lists that hold several types, such as a PQS's Mods, Add opens a searchable list of
+  types to pick from.
+- Fields that name a body, such as the orbit's `referenceBody`, show a list of bodies when
+  clicked. Applying a new `referenceBody` moves the body into orbit around it.
 
-New and deleted bodies last until the game closes; nothing is written to the body's config.
-A deleted body's name stays taken until then. Don't save the game with vessels around a new
-body: the body won't be there when the save loads.
+## History
+History lists the body's last 40 Applies, newest first, under an Original entry for the body
+as loaded. Click an entry to put the body back the way it was after that Apply; you can
+step forward again until you apply something new. History is lost when the game closes.
 
-Export Body writes the whole body as a config; Export Patch writes a ModuleManager patch
-holding only what differs from the body's Template. Both write
-`PluginData/Kittopia/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
-load it), replacing the body's last export. Move the file into `GameData` to use it.
+Actions that ask for confirmation, such as Convert Body to Barycenter, can't be undone, and
+you can't go back past them.
 
-Fields that name a body, such as the orbit's `referenceBody`, open a list of the bodies in
-game when clicked. Applying a new `referenceBody` moves the body there, in the body list
-and on the map; a body can't be moved to orbit itself or one of its moons.
+## Adding and deleting bodies
+**Add Body**, under the body list, copies a body under a new name. Pick the body to copy as
+its Template and, optionally, a different body for it to orbit. The copy leaves out what
+other mods add to bodies (they configure bodies by name, so they don't know about the copy),
+any space centre, and its template's UBIs.
 
-Lists of plain text, such as the UBIs a body `implements`, show a text box per entry: clear
-one or press its x to remove it, and type in the last box to add one.
+**Delete Body**, at the bottom of a body's fields, removes it after a second click. Stars,
+the home world, bodies with moons and bodies with vessels around them can't be deleted.
 
-Hovering a field's label shows its documentation, if the mod that defines it provides
-any (see [Extending KittopiaTech](extending.md#field-docs)).
+Like other edits, new and deleted bodies only last until the game closes. Don't save the
+game with vessels around a new body: it won't be there when the save loads.
 
-Clicking a texture or map path opens a searchable list of textures in GameData, in
-KSPTextureLoader asset bundles, and built into the game (`BUILTIN/`), starting from the
-current value. Click an entry to preview it; double-click or press Select to use it, or
-press Enter to use what you typed. Clicking a texture or map thumbnail opens a larger
-preview. Textures and on-demand maps that aren't loaded yet are sampled from their file for
-thumbnails; only the preview window loads the full texture, and on-demand maps stay
-unloaded. Previews show a texture's colour without its alpha, since alpha often holds
-something else, like gloss.
+## Textures
+Click a texture or map path to browse textures in GameData, in asset bundles and built into
+the game (`BUILTIN/`). Click an entry to preview it, and double-click it or press Select to
+use it. Click a thumbnail for a larger preview. Previews leave out alpha, since it often
+holds something other than transparency, like gloss.
 
-Curves show a small graph; click its button for a larger one. Drag keys on the graph to
-move them; dragging one past its neighbours reorders the keys, and holding it at the edge of
-the graph widens the view in that direction; the scales left of and below the graph follow it.
-Double-click empty space to add a key, and press Delete to remove the selected one. Under the graph, the selected key's time and value can
-be typed, and its tangent mode picked: Auto writes no tangents and lets
-KSP choose them, Smooth and Linear follow the neighbouring keys as they move, Flat is level,
-and Free keeps tangents as typed. The table below lists every key for exact numbers; typing
-a tangent makes that key Free.
+## Curves
+Click a curve's graph button to open a larger graph. Drag keys to move them, double-click
+empty space to add one, and press Delete to remove the selected key. Below the graph you can
+type the selected key's time and value and pick its tangent mode:
 
-Colour ramps that Kopernicus can bake from a gradient (rim and fog colour ramps) are edited
-as gradient stops. Click the ramp's button: drag the markers under the ramp to move stops,
-double-click to add one, and pick the selected stop's colour or type its time. A ramp
-loaded from a texture is read back as the few stops that best match it. Once edited, the ramp
-exports as its gradient node (`Gradient` or `FogColorRamp`) rather than a texture path. To
-use a texture instead, set the raw property (e.g. `_rimColorRamp`) under Shader properties.
+- **Auto** lets KSP choose the tangents.
+- **Smooth** and **Linear** follow the neighbouring keys.
+- **Flat** is level.
+- **Free** keeps the tangents you type.
 
-Each material (the scaled and PQS surface materials, ocean and scatter materials) has a
-Shader properties section listing every property of its shader by its raw name, e.g.
-`_MainTex`, including those with no named field. Hover a property for the shader's
-description and range. Materials on spawned bodies need a Kopernicus build with
-`MaterialLoader.CreateExisting`; without it, those materials don't appear.
+## Colour ramps
+Rim and fog colour ramps are edited as gradients: click the ramp's button, drag the markers
+to move stops, double-click to add one, and pick a stop's colour. A ramp loaded from a
+texture is approximated by a few stops, and exports as a gradient once edited. To keep
+using a texture, set the raw property (e.g. `_rimColorRamp`) under Shader properties.
 
-Properties whose shader marks them `[Toggle]`, `[ToggleOff]` or `[KeywordEnum]` show as a
-checkbox or a dropdown, and set their keywords as well as the property, as Unity's material
-inspector does in the editor. They show the keyword that's set, since that picks what
-renders.
+## Materials and shaders
+Each material has a Shader properties section listing every property of its shader by its
+raw name, e.g. `_MainTex`. Hover one for its description and range. Toggle-style properties
+show as checkboxes or dropdowns.
 
-Shaders Kopernicus has no loader for, such as a planet pack's own, get only the Shader
-properties section, and export as raw `_X` keys plus their `keyword`s. Click their shader's
-name to pick another from the shaders loaded in game. Their Keywords list
-holds the keywords enabled on the material that no property sets, each with a checkbox.
-Unity can't list every keyword a shader has, so to turn on one that isn't listed, type its
-name under the list and press Add. Keyword edits are staged like any other.
+For shaders Kopernicus has no loader for, such as a planet pack's own, you can click the
+shader's name to switch to another shader. Their Keywords list shows the shader keywords
+that are on; to turn on one that isn't listed, type its name under the list and press Add.
 
-With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export Scaled Maps
-opens its Texture Exporter in the Alt+F12 menu with the current body selected, for
-exporting height, colour and normal maps. It replaces Kopernicus's slower Rebuild
-ScaledSpace Textures action, which KittopiaTech doesn't show.
+## Scaled space maps
+With [BurstPQS](https://github.com/Phantomical/BurstPQS) installed, Export Scaled Maps opens
+its Texture Exporter with the current body selected, for exporting height, colour and normal
+maps. It takes the place of Kopernicus's slower Rebuild ScaledSpace Textures action.
