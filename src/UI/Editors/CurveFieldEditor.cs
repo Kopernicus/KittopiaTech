@@ -195,8 +195,6 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         DebugSkin.CreateSpacer(header.transform, 0f).minWidth = EditorLayout.RowHeight;
 
         DebugSkin.CreateScrollView(popout.Content, out table);
-        var add = DebugSkin.CreateButton(popout.Content, "Add Key", AddKey);
-        EditorLayout.Compact(add.gameObject);
 
         keysRaw = [];
         selected = -1;
@@ -365,6 +363,9 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         var row = DebugSkin.CreateHorizontalLayout(content, 4f, controlWidth: true);
         timeField = PanelField(row.transform, "time", (k, x) => { k.Time = x; return k; });
         valueField = PanelField(row.transform, "value", (k, x) => { k.Value = x; return k; });
+        var add = DebugSkin.CreateButton(row.transform, "Add", AddKey);
+        EditorLayout.Compact(add.gameObject, 0f);
+        add.GetComponent<LayoutElement>().preferredWidth = 50f;
         removeButton = DebugSkin.CreateButton(row.transform, "Remove", () => RemoveKey(selected));
         EditorLayout.Compact(removeButton.gameObject, 0f);
         removeButton.GetComponent<LayoutElement>().preferredWidth = 70f;
