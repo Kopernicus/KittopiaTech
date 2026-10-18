@@ -24,12 +24,6 @@ public static class ActionBar
         (typeof(ScaledVersionLoader), nameof(ScaledVersionLoader.RebuildTextures)),
     ];
 
-    /// <summary>Actions that can't be undone but aren't marked Destructive upstream.</summary>
-    static readonly HashSet<(Type, string)> Confirm = [(typeof(Body), nameof(Body.CreateBarycenter))];
-
-    internal static bool NeedsConfirm(ActionSchema action) =>
-        action.Destructive || Confirm.Contains((action.Method.DeclaringType, action.Method.Name));
-
     public static void Build(Transform parent, IEditScope scope, object owner)
     {
         var actions = TypeSchema
@@ -151,7 +145,7 @@ public sealed class ActionButton : MonoBehaviour
         if (running)
             return;
 
-        if (ActionBar.NeedsConfirm(action) && armedUntil == 0f)
+        if (action.Destructive && armedUntil == 0f)
         {
             armedUntil = Time.unscaledTime + ConfirmSeconds;
             label.text = $"Confirm {action.Name}?";
@@ -169,7 +163,7 @@ public sealed class ActionButton : MonoBehaviour
                 result = action.Method.Invoke(owner, null);
 
             // Run coroutines on the window so they outlive a collapsed foldout.
-            if (ActionBar.NeedsConfirm(action))
+            if (action.Destructive)
                 scope.SealHistory($"Ran {action.Name}");
             if (result is IEnumerator routine)
                 GetComponentInParent<InspectorWindow>().StartCoroutine(RunCoroutine(routine));
