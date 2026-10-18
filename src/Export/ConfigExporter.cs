@@ -52,6 +52,8 @@ public static class ConfigExporter
                 continue;
             if (member.FieldName == "name" && node.HasValue("name"))
                 continue;
+            if (GradientWriter.TryWriteRamp(node, obj, member))
+                continue;
 
             object value;
             try
@@ -196,14 +198,31 @@ public sealed class GradientWriter : IConfigWriter
     public void Write(ConfigNode parent, MemberSchema member, object value)
     {
         UnityEngine.Gradient gradient = (Kopernicus.Configuration.Parsing.Gradient)value;
-        var node = parent.AddNode(member.FieldName);
-        foreach (var key in gradient.colorKeys)
+        WriteStops(parent.AddNode(member.FieldName), gradient.colorKeys.Select(k => new GradientStop(k.time, k.color)));
+    }
+
+    public static void WriteStops(ConfigNode node, IEnumerable<GradientStop> stops)
+    {
+        foreach (var stop in stops)
         {
-            var c = key.color;
+            var c = stop.Color;
             node.AddValue(
-                key.time.ToString("R", CultureInfo.InvariantCulture),
+                stop.Time.ToString("R", CultureInfo.InvariantCulture),
                 string.Join(",", new[] { c.r, c.g, c.b, c.a }.Select(f => f.ToString("R", CultureInfo.InvariantCulture)))
             );
         }
+    }
+
+    /// <summary>
+    /// Writes a ramp texture with no file behind it as the gradient node it can be baked from;
+    /// its path would read back as nothing.
+    /// </summary>
+    public static bool TryWriteRamp(ConfigNode parent, object owner, MemberSchema texture)
+    {
+        var slot = GradientSlot.For(owner, texture);
+        if (slot == null || !slot.IsBakedRamp || slot.Read() is not GradientRamp ramp)
+            return false;
+        WriteStops(parent.AddNode(slot.Gradient.FieldName), ramp.Stops);
+        return true;
     }
 }
