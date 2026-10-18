@@ -34,9 +34,12 @@ public sealed class Revision
 /// <summary>
 /// The revisions applied to one body this game session, starting from the body as loaded.
 /// Restoring writes back the values each revision changed and runs the same hooks as Apply.
+/// Only the newest <see cref="Limit"/> are kept.
 /// </summary>
 public sealed class EditHistory(EditSession session)
 {
+    public const int Limit = 40;
+
     readonly List<Revision> revisions = [new Revision { Label = "Original" }];
 
     public IReadOnlyList<Revision> Revisions => revisions;
@@ -49,6 +52,9 @@ public sealed class EditHistory(EditSession session)
         // A new revision replaces any that were restored away from.
         revisions.RemoveRange(Current + 1, revisions.Count - Current - 1);
         revisions.Add(revision);
+        // The oldest kept becomes the earliest state that can be restored.
+        if (revisions.Count > Limit)
+            revisions.RemoveRange(0, revisions.Count - Limit);
         Current = revisions.Count - 1;
     }
 

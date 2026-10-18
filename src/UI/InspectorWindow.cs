@@ -234,7 +234,9 @@ public class InspectorWindow : MonoBehaviour
         if (session != null)
             session.Changed -= UpdateFooter;
         session = null;
-        if (historyPopout != null)
+        // An open history follows the selection to the new body's history.
+        bool showHistory = historyPopout != null;
+        if (showHistory)
             historyPopout.Close();
 
         if (body != null)
@@ -243,6 +245,8 @@ public class InspectorWindow : MonoBehaviour
             session = EditSession.For(context);
             session.Changed += UpdateFooter;
             InspectorBuilder.BuildMembers(inspectorContent, session, context.Body);
+            if (showHistory)
+                historyPopout = HistoryWindow.Open(this, session);
         }
         exportLabel.text = "";
         string unavailable = BurstPQSExporter.Unavailable(body);
