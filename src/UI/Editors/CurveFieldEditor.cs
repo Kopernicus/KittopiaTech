@@ -25,6 +25,12 @@ public sealed class CurveFieldEditor : FieldEditor<object>
     static readonly Color SelectedColor = new(0.75f, 0.85f, 1f);
     const float HitRadius = 8f;
 
+    /// <summary>How close to an edge, as a fraction of the graph, a dragged key starts growing the view.</summary>
+    const float EdgeMargin = 0.03f;
+
+    /// <summary>How much of its span the view grows per second with the pointer right at an edge.</summary>
+    const float GrowRate = 0.5f;
+
     [SerializeField]
     RawImage sparkline;
 
@@ -179,7 +185,7 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         rangeLabel = DebugSkin.CreateLabel(popout.Content, "");
         rangeLabel.enableWordWrapping = false;
         rangeLabel.color = new Color(0.64f, 0.65f, 0.67f);
-        var hint = DebugSkin.CreateLabel(popout.Content, "Drag keys to move them; double-click to add one.");
+        var hint = DebugSkin.CreateLabel(popout.Content, "Drag keys to move or reorder them; hold one at an edge to widen the view. Double-click to add a key.");
         hint.color = rangeLabel.color;
 
         modeButtons.Clear();
@@ -218,21 +224,37 @@ public sealed class CurveFieldEditor : FieldEditor<object>
         if (dragIndex < 0 || dragIndex >= keys.Count)
             return;
 
-        // The view stays put while dragging, so the key doesn't chase the pointer. Keys move by
-        // the pointer's offset, so a vertical drag leaves the time exactly as it was.
+        // The view doesn't refit while dragging, so the key doesn't chase the pointer, but it
+        // grows while the pointer is held near or past an edge. Keys move by the pointer's
+        // offset, so a vertical drag leaves the time exactly as it was.
         dragging = true;
+        Grow(n);
         var offset = view.FromNormalized(new Vector2(Mathf.Clamp01(n.x), Mathf.Clamp01(n.y))) - pressPoint;
         var p = new Vector2(pressKey.Time, pressKey.Value) + offset;
-        float gap = (view.T1 - view.T0) * 1e-3f;
-        float lo = dragIndex > 0 ? keys[dragIndex - 1].Time + gap : float.NegativeInfinity;
-        float hi = dragIndex + 1 < keys.Count ? keys[dragIndex + 1].Time - gap : float.PositiveInfinity;
 
+        // Dragging past a neighbour reorders the keys; the dragged key stays selected.
         var key = keys[dragIndex];
-        key.Time = lo < hi ? Mathf.Clamp(p.x, lo, hi) : key.Time;
+        key.Time = p.x;
         key.Value = p.y;
-        keys[dragIndex] = key;
+        keys.RemoveAt(dragIndex);
+        int index = keys.FindIndex(k => k.Time > key.Time);
+        dragIndex = selected = index < 0 ? keys.Count : index;
+        keys.Insert(dragIndex, key);
         CurveKeys.Update(keys);
         Redraw(fit: false);
+    }
+
+    /// <summary>Widens the view towards any edge the pointer is within <see cref="EdgeMargin"/> of, or past.</summary>
+    void Grow(Vector2 n)
+    {
+        // Up to twice as fast the further past the edge the pointer is.
+        float Depth(float x) => Mathf.Clamp((x - (1f - EdgeMargin)) / EdgeMargin, 0f, 2f);
+        float step = GrowRate * Time.unscaledDeltaTime;
+        float dt = (view.T1 - view.T0) * step, dv = (view.V1 - view.V0) * step;
+        view.T1 += dt * Depth(n.x);
+        view.T0 -= dt * Depth(1f - n.x);
+        view.V1 += dv * Depth(n.y);
+        view.V0 -= dv * Depth(1f - n.y);
     }
 
     void OnRelease()

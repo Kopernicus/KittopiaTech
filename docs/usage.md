@@ -38,7 +38,9 @@ something else, like gloss. This needs KittopiaTech's shader bundle, which is on
 Windows so far; elsewhere, previews show alpha as transparency.
 
 Curves show a small graph; click its button for a larger one. Drag keys on the graph to
-move them, and double-click empty space to add a key. Under the graph, the selected key's
+move them; dragging one past its neighbours reorders the keys, and holding it at the edge of
+the graph widens the view in that direction. Double-click empty space to add a key. Under
+the graph, the selected key's
 time and value can be typed, and its tangent mode picked: Auto writes no tangents and lets
 KSP choose them, Smooth and Linear follow the neighbouring keys as they move, Flat is level,
 and Free keeps tangents as typed. The table below lists every key for exact numbers; typing

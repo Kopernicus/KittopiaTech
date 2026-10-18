@@ -150,7 +150,11 @@ public static class CurveGraph
     }
 }
 
-/// <summary>Reports presses, drags and double-clicks on a graph, in normalised coordinates.</summary>
+/// <summary>
+/// Reports presses, drags and double-clicks on a graph, in normalised coordinates. Once a drag
+/// starts it's reported every frame until release, even with the pointer still, so holding a
+/// key against an edge can keep scrolling the view.
+/// </summary>
 public sealed class CurveGraphArea : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler, IPointerClickHandler
 {
     public Action<Vector2> onPress;
@@ -159,27 +163,55 @@ public sealed class CurveGraphArea : MonoBehaviour, IPointerDownHandler, IDragHa
     public Action<Vector2> onDoubleClick;
     public Action onResize;
 
+    bool dragging;
+    Vector2 pointer;
+    Camera eventCamera;
+
     public Vector2 Size => ((RectTransform)transform).rect.size;
 
     // The graph is drawn at its on-screen size, so it's redrawn when that changes.
     void OnRectTransformDimensionsChange() => onResize?.Invoke();
 
-    public void OnPointerDown(PointerEventData eventData) => onPress?.Invoke(Normalize(eventData));
+    public void OnPointerDown(PointerEventData eventData) => onPress?.Invoke(Track(eventData));
 
-    public void OnDrag(PointerEventData eventData) => onDrag?.Invoke(Normalize(eventData));
+    public void OnDrag(PointerEventData eventData)
+    {
+        // Update reports it from here on.
+        Track(eventData);
+        dragging = true;
+    }
 
-    public void OnPointerUp(PointerEventData eventData) => onRelease?.Invoke();
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        dragging = false;
+        onRelease?.Invoke();
+    }
+
+    void OnDisable() => dragging = false;
+
+    void Update()
+    {
+        if (dragging)
+            onDrag?.Invoke(Normalize(pointer, eventCamera));
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.clickCount == 2)
-            onDoubleClick?.Invoke(Normalize(eventData));
+            onDoubleClick?.Invoke(Track(eventData));
     }
 
-    Vector2 Normalize(PointerEventData eventData)
+    Vector2 Track(PointerEventData eventData)
+    {
+        pointer = eventData.position;
+        eventCamera = eventData.pressEventCamera;
+        return Normalize(pointer, eventCamera);
+    }
+
+    Vector2 Normalize(Vector2 screen, Camera camera)
     {
         var rect = (RectTransform)transform;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, eventData.position, eventData.pressEventCamera, out var local);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screen, camera, out var local);
         var r = rect.rect;
         return new Vector2((local.x - r.xMin) / r.width, (local.y - r.yMin) / r.height);
     }
