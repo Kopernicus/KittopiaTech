@@ -123,9 +123,6 @@ public class InspectorWindow : MonoBehaviour
         exportMapsButton = DebugSkin.CreateButton(footer.transform, "Export scaled maps", () => BurstPQSExporter.Open(Body));
         Tooltip.Attach(exportMapsButton.gameObject, "Opens BurstPQS's Texture Exporter for this body");
         exportMapsTooltip = exportMapsButton.GetComponent<Tooltip>();
-        exportLabel = DebugSkin.CreateLabel(footer.transform, "");
-        exportLabel.enableWordWrapping = false;
-        exportLabel.overflowMode = TextOverflowModes.Ellipsis;
         pendingLabel = DebugSkin.CreateLabel(footer.transform, "");
         pendingLabel.alignment = TextAlignmentOptions.MidlineRight;
         pendingLabel.color = PendingColor;
@@ -140,6 +137,19 @@ public class InspectorWindow : MonoBehaviour
             layout.flexibleWidth = 0f;
             layout.preferredWidth = button == exportMapsButton ? 130f : 100f;
         }
+
+        // Its own row under the buttons, which leave too little room for a path.
+        exportLabel = DebugSkin.CreateLabel(content, "");
+        FitTextHeight.Attach(exportLabel);
+        ShowStatus(null);
+    }
+
+    /// <summary>Shows the result of an export under the footer, or hides the row for null.</summary>
+    void ShowStatus(string text, bool error = false)
+    {
+        exportLabel.text = text ?? "";
+        exportLabel.color = error ? FieldRow.ErrorColor : Color.white;
+        exportLabel.transform.parent.gameObject.SetActive(text != null);
     }
 
     void ToggleHistory()
@@ -167,15 +177,17 @@ public class InspectorWindow : MonoBehaviour
                 path = ExportFiles.ExportBody(session.Context);
 
             if (path == null)
-                exportLabel.text = warning ?? "No Template to patch against; use Export body";
-            else
-                exportLabel.text = $"Saved {path}, path copied{skipped}";
-            if (warning != null && path != null)
+            {
+                ShowStatus(warning ?? "No Template to patch against; use Export body", error: true);
+                return;
+            }
+            ShowStatus($"Saved {path} (full path copied){skipped}" + (warning != null ? $"\n{warning}" : ""));
+            if (warning != null)
                 UnityEngine.Debug.LogWarning($"[KittopiaTech] Patch for {Body.name}: {warning}");
         }
         catch (System.Exception e)
         {
-            exportLabel.text = "Export failed, see log";
+            ShowStatus("Export failed, see log", error: true);
             UnityEngine.Debug.LogError($"[KittopiaTech] Export failed: {e}");
         }
     }
@@ -268,7 +280,7 @@ public class InspectorWindow : MonoBehaviour
             if (showHistory)
                 historyPopout = HistoryWindow.Open(this, session);
         }
-        exportLabel.text = "";
+        ShowStatus(null);
         string unavailable = BurstPQSExporter.Unavailable(body);
         exportMapsButton.interactable = unavailable == null;
         exportMapsTooltip.text = unavailable ?? "Opens BurstPQS's Texture Exporter for this body";

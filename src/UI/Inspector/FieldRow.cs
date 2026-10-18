@@ -12,7 +12,7 @@ public sealed class FieldRow : MonoBehaviour
 {
     public const float LabelWidth = 160f;
 
-    static readonly Color ErrorColor = new(0.95f, 0.45f, 0.42f);
+    internal static readonly Color ErrorColor = new(0.95f, 0.45f, 0.42f);
 
     public FieldEditor Editor { get; private set; }
     public IValueSource Source { get; private set; }
