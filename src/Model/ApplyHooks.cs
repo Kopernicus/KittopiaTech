@@ -116,8 +116,17 @@ public static class ApplyHooks
 
     // Core hooks. Orbits first, so a rebuilt sphere sees the final orbit.
 
+    /// <summary>
+    /// The loader only sets the orbital elements; Init rebuilds the orbit's frame, which the
+    /// body's position and its orbit line come from. It goes first, since FinalizeOrbit then
+    /// recomputes the period with the body's own mass included.
+    /// </summary>
     [ApplyHook(typeof(OrbitLoader), Order = -10, Replaces = nameof(OrbitLoader.FinalizeOrbit))]
-    static void FinalizeOrbit(BodyContext body, OrbitLoader orbit) => orbit.FinalizeOrbit();
+    static void FinalizeOrbit(BodyContext body, OrbitLoader orbit)
+    {
+        orbit.Value.orbit.Init();
+        orbit.FinalizeOrbit();
+    }
 
     /// <summary>
     /// The PQS renders with its own copy of the quality material that the loader edits, made
