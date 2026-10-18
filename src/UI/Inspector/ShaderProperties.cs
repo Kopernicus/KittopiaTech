@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using KittopiaTech.Model;
+using KittopiaTech.UI.Debug;
 using KittopiaTech.UI.Editors;
 using Kopernicus.Configuration.MaterialLoader;
 using TMPro;
@@ -73,6 +76,10 @@ public sealed class ShaderProperties : MonoBehaviour
             var slot = new ShaderPropertySlot(loader, shader.GetPropertyName(i), type, drawer);
             AddRow(content, slot, Describe(shader, i, type, drawer));
         }
+
+        // Only custom materials read `keyword` values from configs, so only theirs export.
+        if (loader is CustomMaterialLoader)
+            BuildKeywords(shader);
     }
 
     IValueSource AddRow(Transform parent, ISlot slot, string tooltip)
@@ -89,6 +96,53 @@ public sealed class ShaderProperties : MonoBehaviour
             UnityEngine.Debug.LogError($"[KittopiaTech] Failed to build a row for {slot.Label}: {e}");
         }
         return source;
+    }
+
+    /// <summary>
+    /// Keywords no property sets, e.g. <c>multi_compile</c> ones. Unity can't list a shader's
+    /// keywords, so this shows those enabled on the material, and more can be added by name.
+    /// </summary>
+    void BuildKeywords(Shader shader)
+    {
+        var owned = KeywordDrawer.Owned(shader);
+        var header = DebugSkin.CreateLabel(content, "<b>Keywords</b>");
+        header.margin = new Vector4(4f, 6f, 0f, 0f);
+        var list = DebugSkin.CreateVerticalLayout(content, 2f).transform;
+        list.name = "Keywords";
+
+        var listed = new Dictionary<string, IValueSource>();
+        void Add(string keyword)
+        {
+            if (!listed.ContainsKey(keyword))
+                listed[keyword] = AddRow(list, new KeywordSlot(loader, keyword), "Shader keyword");
+        }
+        foreach (var keyword in loader.Value.shaderKeywords.Where(k => !owned.Contains(k)).OrderBy(k => k))
+            Add(keyword);
+
+        var addRow = new GameObject("AddKeyword", typeof(RectTransform));
+        addRow.transform.SetParent(content, false);
+        EditorLayout.Row(addRow.transform, 6f).padding = new RectOffset(4, 0, 0, 0);
+        var input = DebugSkin.CreateInputField(addRow.transform);
+        if (input.placeholder is TMP_Text placeholder)
+            placeholder.text = "Keyword to enable";
+        void Submit()
+        {
+            string keyword = input.text.Trim();
+            if (keyword.Length == 0 || keyword.Any(char.IsWhiteSpace))
+                return;
+            if (owned.Contains(keyword))
+            {
+                UnityEngine.Debug.LogWarning($"[KittopiaTech] {keyword} is set by a shader property; edit that instead.");
+                return;
+            }
+            Add(keyword);
+            listed[keyword].Set(true);
+            input.text = "";
+        }
+        input.onSubmit.AddListener(_ => Submit());
+        var button = DebugSkin.CreateButton(addRow.transform, "Add", Submit);
+        EditorLayout.Compact(button.gameObject, 0f);
+        button.GetComponent<LayoutElement>().preferredWidth = 48f;
     }
 
     /// <summary>The shader's own description of the property, and its limits for ranges.</summary>
