@@ -37,6 +37,9 @@ Fields that name a body, such as the orbit's `referenceBody`, open a list of the
 game when clicked. Applying a new `referenceBody` moves the body there, in the body list
 and on the map; a body can't be moved to orbit itself or one of its moons.
 
+Lists of plain text, such as the UBIs a body `implements`, show a text box per entry: clear
+one or press its x to remove it, and type in the last box to add one.
+
 Hovering a field's label shows its documentation, if the mod that defines it provides
 any (see [Extending KittopiaTech](extending.md#field-docs)).
 
