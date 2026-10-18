@@ -29,7 +29,7 @@ public static class TemplatePatch
     public static ConfigNode Build(BodyContext context, out string warning)
     {
         warning = null;
-        var template = FindBodyConfig(context.Body.Name)?.GetNode("Template");
+        var template = Bodies.CreatedTemplate(context.CelestialBody) ?? FindBodyConfig(context.Body.Name)?.GetNode("Template");
         string templateName = template?.GetValue("name");
         if (templateName == null)
             return null;

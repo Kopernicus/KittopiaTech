@@ -26,7 +26,19 @@ public static class ExportFiles
         var patch = TemplatePatch.Build(context, out warning);
         if (patch == null)
             return null;
-        return Save(context.Body.Name, TemplatePatch.Wrap(context.Body.Name, patch, Pass));
+        var wrapped = TemplatePatch.Wrap(context.Body.Name, patch, Pass);
+        var template = Bodies.CreatedTemplate(context.CelestialBody);
+        if (template == null)
+            return Save(context.Body.Name, wrapped);
+
+        // A body made in game has no config to patch, so the file creates it from its template
+        // first; ModuleManager runs a pass's patches in file order.
+        var root = new ConfigNode();
+        var body = root.AddNode($"@Kopernicus:{Pass}").AddNode("Body");
+        body.AddValue("name", context.Body.Name);
+        body.AddNode(template.CreateCopy());
+        root.AddData(wrapped);
+        return Save(context.Body.Name, root);
     }
 
     static string Save(string bodyName, ConfigNode root)
