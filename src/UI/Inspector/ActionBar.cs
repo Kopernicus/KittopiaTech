@@ -38,7 +38,8 @@ public static class ActionBar
             .Where(a => !Hidden.Contains((a.Method.DeclaringType, a.Method.Name)))
             .Where(a => !ApplyHooks.Replaces(a.Method))
             .ToList();
-        if (actions.Count == 0)
+        bool isBody = owner is Body;
+        if (actions.Count == 0 && !isBody)
             return;
 
         var row = DebugSkin.CreateHorizontalLayout(parent, 4f, controlWidth: true);
@@ -49,6 +50,66 @@ public static class ActionBar
             var button = DebugSkin.CreateButton(row.transform, action.Name);
             EditorLayout.Compact(button.gameObject);
             button.gameObject.AddComponent<ActionButton>().Setup(button, action, scope, owner);
+        }
+        if (isBody)
+        {
+            var delete = DebugSkin.CreateButton(row.transform, "Delete body");
+            delete.name = "DeleteBody";
+            EditorLayout.Compact(delete.gameObject);
+            delete.gameObject.AddComponent<DeleteBodyButton>().Setup(delete, scope.Context.CelestialBody);
+        }
+    }
+}
+
+/// <summary>Deletes the body until the game restarts, on a second click within a few seconds.</summary>
+public sealed class DeleteBodyButton : MonoBehaviour
+{
+    const float ConfirmSeconds = 3f;
+
+    Button button;
+    TextMeshProUGUI label;
+    CelestialBody body;
+    float armedUntil;
+
+    public void Setup(Button button, CelestialBody body)
+    {
+        this.button = button;
+        this.body = body;
+        label = button.GetComponentInChildren<TextMeshProUGUI>();
+        button.onClick.AddListener(OnClick);
+
+        string problem = Bodies.CantDelete(body);
+        button.interactable = problem == null;
+        Tooltip.Attach(gameObject, problem ?? "Remove the body until the game restarts; its config is unchanged");
+    }
+
+    void Update()
+    {
+        if (armedUntil > 0f && Time.unscaledTime > armedUntil)
+        {
+            armedUntil = 0f;
+            label.text = "Delete body";
+        }
+    }
+
+    void OnClick()
+    {
+        if (armedUntil == 0f)
+        {
+            armedUntil = Time.unscaledTime + ConfirmSeconds;
+            label.text = $"Confirm deleting {body.bodyName}?";
+            return;
+        }
+        armedUntil = 0f;
+        try
+        {
+            Bodies.Delete(body);
+        }
+        catch (Exception e)
+        {
+            label.text = "Delete body";
+            button.interactable = false;
+            UnityEngine.Debug.LogError($"[KittopiaTech] Deleting {body.bodyName} failed: {e}");
         }
     }
 }

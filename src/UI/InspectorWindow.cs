@@ -108,6 +108,9 @@ public class InspectorWindow : MonoBehaviour
             placeholder.text = "Search bodies";
         search.onValueChanged.AddListener(FilterTree);
         DebugSkin.CreateScrollView(tree.transform, out treeContent);
+        var newBody = DebugSkin.CreateButton(tree.transform, "New body", ToggleNewBody);
+        newBody.name = "NewBody";
+        Tooltip.Attach(newBody.gameObject, "Copy a body under a new name, until the game closes");
 
         DebugSkin.CreateSeparator(split.transform, vertical: true);
 
@@ -160,6 +163,16 @@ public class InspectorWindow : MonoBehaviour
         exportLabel.text = text ?? "";
         exportLabel.color = error ? FieldRow.ErrorColor : Color.white;
         exportLabel.transform.parent.gameObject.SetActive(text != null);
+    }
+
+    Popout newBodyPopout;
+
+    void ToggleNewBody()
+    {
+        if (newBodyPopout != null)
+            newBodyPopout.Close();
+        else
+            newBodyPopout = NewBodyForm.Open(this);
     }
 
     void ToggleHistory()
@@ -239,7 +252,10 @@ public class InspectorWindow : MonoBehaviour
         foreach (var existing in EditSession.All)
             UpdateTreeEntry(existing);
         FilterTree(search.text);
-        HighlightSelected();
+        if (Body != null && Bodies.IsDeleted(Body))
+            Select(Body.referenceBody);
+        else
+            HighlightSelected();
     }
 
     /// <summary>Bodies with pending edits are listed in the pending colour.</summary>

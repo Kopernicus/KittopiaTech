@@ -37,7 +37,7 @@ public sealed class BodyFieldEditor : FieldEditor<string>
         if (picker != null || Source.IsReadOnly)
             return;
 
-        var bodies = FlightGlobals.Bodies.AsEnumerable();
+        var bodies = FlightGlobals.Bodies.Where(b => !Bodies.IsDeleted(b));
         // A body can't orbit itself or its own moons.
         if (Source.Member?.FieldName == "referenceBody")
             bodies = bodies.Where(b => !Bodies.Orbits(b, Source.Scope.Context.CelestialBody));

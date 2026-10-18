@@ -59,8 +59,14 @@ public static class Bodies
             return "Pick a body to copy";
         if (string.IsNullOrEmpty(name?.Trim()))
             return "Enter a name";
-        if (FlightGlobals.Bodies.Any(b => b.transform.name == name || b.bodyName == name))
-            return $"There's already a body named {name}";
+        var existing = FlightGlobals.Bodies.FirstOrDefault(b => b.transform.name == name || b.bodyName == name);
+        if (existing != null)
+        {
+            // Deleted bodies keep their place, and name lookups still find them.
+            return IsDeleted(existing)
+                ? $"{name} was deleted, but its name stays taken until the game restarts"
+                : $"There's already a body named {name}";
+        }
         if (source.orbitDriver == null)
             return $"{source.bodyName} orbits nothing, so it can't be copied";
         if (parent == null)

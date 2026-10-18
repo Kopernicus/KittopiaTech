@@ -28,6 +28,21 @@ the game closes.
 Text holding a localization key such as `#autoLOC_900101` shows what the key reads in game
 when hovered.
 
+New body, under the body list, copies a body as it is now under a new name. Pick the body to
+copy as its Template and, optionally, another body for it to orbit; by default it orbits what
+the template orbits, half a turn ahead of it. Around another body it starts halfway out to
+that body's sphere of influence. The copy leaves out what other mods add to bodies (they
+configure bodies by name and don't know the copy), any space centre, and its template's UBIs.
+Its Export patch writes a new Body using the template's Template node, then the patch
+against that stock body.
+
+Delete body, at the bottom of a body's fields, removes it after a second click. It can't
+delete stars, the home world, bodies with moons or bodies with vessels around or on them.
+
+New and deleted bodies last until the game closes; nothing is written to the body's config.
+A deleted body's name stays taken until then. Don't save the game with vessels around a new
+body: the body won't be there when the save loads.
+
 Export body writes the whole body as a config; Export patch writes a ModuleManager patch
 holding only what differs from the body's Template. Both write
 `PluginData/Kopernicus/<body>.cfg` in the KSP folder (beside `GameData`, so the game doesn't
