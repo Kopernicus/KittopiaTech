@@ -1,4 +1,5 @@
 using KittopiaTech.UI.Debug;
+using KSP.Localization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,12 +13,16 @@ public sealed class TextFieldEditor : FieldEditor<string>
     [SerializeField]
     TMP_InputField input;
 
+    [SerializeField]
+    Tooltip tooltip;
+
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
         EditorLayout.Row(transform);
         input = DebugSkin.CreateInputField(transform);
         input.lineType = TMP_InputField.LineType.SingleLine;
         EditorLayout.Compact(input.gameObject);
+        tooltip = input.gameObject.AddComponent<Tooltip>();
     }
 
     protected override void Awake() => input.onEndEdit.AddListener(OnEndEdit);
@@ -33,7 +38,12 @@ public sealed class TextFieldEditor : FieldEditor<string>
         input.text = Value ?? ""; // only onValueChanged fires, and nothing listens to it
         input.interactable = !Source.IsReadOnly;
         EditorLayout.MarkInvalid(input, Source.Error != null);
+        tooltip.text = Localized(Value);
     }
+
+    /// <summary>What a localization key such as <c>#autoLOC_910049</c> shows in game, or null.</summary>
+    public static string Localized(string text) =>
+        text != null && text.StartsWith("#") && Localizer.TryGetStringByTag(text, out var value) ? value : null;
 }
 
 /// <summary>Shows a value nothing else can edit.</summary>
@@ -42,6 +52,9 @@ public sealed class ReadOnlyFieldEditor : FieldEditor<object>
     [SerializeField]
     TextMeshProUGUI label;
 
+    [SerializeField]
+    Tooltip tooltip;
+
     protected internal override void BuildPrefab(PrefabContext ctx)
     {
         EditorLayout.Row(transform);
@@ -49,6 +62,8 @@ public sealed class ReadOnlyFieldEditor : FieldEditor<object>
         label.fontStyle = FontStyles.Italic;
         label.enableWordWrapping = false;
         label.overflowMode = TextOverflowModes.Ellipsis;
+        label.raycastTarget = true;
+        tooltip = label.gameObject.AddComponent<Tooltip>();
     }
 
     public override void Refresh()
@@ -60,6 +75,7 @@ public sealed class ReadOnlyFieldEditor : FieldEditor<object>
             Kopernicus.ConfigParser.Interfaces.IWritable w => w.ValueToString(),
             _ => value.ToString(),
         };
+        tooltip.text = TextFieldEditor.Localized(label.text);
     }
 }
 

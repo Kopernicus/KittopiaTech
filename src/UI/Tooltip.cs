@@ -38,7 +38,7 @@ public sealed class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     void Update()
     {
-        if (shownAt < 0f || Time.unscaledTime < shownAt || owner == this)
+        if (shownAt < 0f || Time.unscaledTime < shownAt || owner == this || string.IsNullOrEmpty(text))
             return;
         Show();
     }
