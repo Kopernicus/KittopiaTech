@@ -46,7 +46,7 @@ jobs:
           shopt -s nullglob
           mkdir -p ${{ env.RELEASE_STAGING  }}
           cp -r -v GameData README* LICENSE* CHANGELOG* ${{ env.RELEASE_STAGING }}
-          cp -r -v LICENSE* ${{ env.RELEASE_STAGING }}/GameData/KittopiaTech
+          cp -r -v LICENSE* KittopiaTech.ckan ${{ env.RELEASE_STAGING }}/GameData/KittopiaTech
           cd ${{ env.RELEASE_STAGING }}
 
       - uses: actions/upload-artifact@v4

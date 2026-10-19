@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/refs/heads/master/CKAN.schema
+
+tags:
+  - plugin
+
+depends:
+  - name: Kopernicus
+  - name: KSPTextureLoader
+
+# Export Scaled Maps opens BurstPQS's Texture Exporter.
+recommends:
+  - name: BurstPQS
+
+# Lets KittopiaTech rebuild its windows when KittopiaTech or Kopernicus is hot reloaded.
+suggests:
+  - name: HotReloadKSP
+    min_version: 0.1.5

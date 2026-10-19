@@ -1,44 +1,48 @@
 # KittopiaTech
-A visual editor for Kopernicus
 
-## Building
-KittopiaTech is built using [KSPBuildTools](https://github.com/KSPModdingLibs/KSPBuildTools).
-In order to build the mod you will need:
-- the `dotnet` CLI
-- [CKAN](https://github.com/KSP-CKAN/CKAN), to install the mod dependencies
+![the kittopia editor](./docs/images/readme-1.png)
 
-### Installing Dependencies
-The mods KittopiaTech depends on (Kopernicus, ModularFlightIntegrator) are
-installed into fake CKAN instances under `deps/installs` so that they don't
-need to be present in the KSP install you reference. Run one of the following
-in the repository root before building:
+Kittopia is a visual editor for Kopernicus. It allows you to live-edit just
+about anything you can configure through kopernicus configs.
 
-On Windows, run
-```powershell
-Set-ExecutionPolicy -Scope Process Bypass
-.\setup-deps.ps1 -ckan path\to\ckan.exe
-```
+Some examples of what you can do:
+* Modify the terrain in real-time by adding or editing PQSMods.
+* Change the textures used by the scaled space model of a planet.
+* Inspect any configured texture used by a body.
+* Add or edit the ring system on a planet.
+* Delete Dres.
+* Create 17 different copies of Dres, each with slightly different orbits and
+  unique ring systems.
 
-On Linux/MacOS run
-```bash
-./setup-deps.sh
-```
+To open the kittopia editor open up the Alt+F12 debug menu, then click on the
+kittopia tab. It will open up the editor above, which you can then use to edit
+any body you chose.
 
-### Referencing KSP
-Next, create a `KittopiaTech.props.user` file in the repository root that
-points at your KSP install:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
+You can find more complete docs about how to user each editor component in the
+[user guide](./docs/user-guide.md).
 
-<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <ReferencePath>$KSP_ROOT_PATH</ReferencePath>
-    </PropertyGroup>
-</Project>
-```
+## Extending Kittopia
+Kittopia was built to be extensible. You can define your own custom field
+editors, config writers, or apply hooks so that your types can be edited just
+as easily as any type built into kopernicus.
 
-Alternatively, you can set the `KSP_ROOT` environment variable.
+Take a look at the [extending kittopia](./docs/extending.md) guide for more.
 
-### Building
-Run `dotnet build`. The built mod will be placed in `GameData/KittopiaTech`,
-which you can then copy or symlink into your KSP install's `GameData` folder.
+## Dependencies
+Kittopia depends on the following mods:
+* Kopernicus
+* KSPTextureLoader
+
+If you want to export scaled space textures for a planet then you will also
+need BurstPQS. Kittopia does not include support for doing this natively
+(and BurstPQS is way faster anyways).
+
+In addition, Kittopia has full support for HotReloadKSP. You can use this to
+edit the code for PQSMods as you go, and it will continue being able to edit
+planet surfaces (and update the editor) as changes are reloaded.
+
+## Building and Contributing
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## License
+Kittopia is available under the MIT license.
