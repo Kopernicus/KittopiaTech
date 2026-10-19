@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Kopernicus.ConfigParser.Interfaces;
 
 namespace KittopiaTech.Model;
@@ -64,6 +66,39 @@ public static class Structure
             }
         }
     }
+
+    static readonly Dictionary<Type, PropertyInfo> WrappedValues = [];
+
+    /// <summary>
+    /// What <paramref name="node"/> stands for: the object a loader wraps (ITypeParser.Value), or
+    /// the node itself. Some getters return a new loader on every read, like a star's Light.
+    /// </summary>
+    public static object Identity(object node)
+    {
+        if (node == null)
+            return null;
+        var type = node.GetType();
+        if (!WrappedValues.TryGetValue(type, out var property))
+        {
+            var parser = type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ITypeParser<>));
+            property = parser != null && !parser.GetGenericArguments()[0].IsValueType ? parser.GetProperty("Value") : null;
+            WrappedValues[type] = property;
+        }
+        try
+        {
+            return property?.GetValue(node) ?? node;
+        }
+        catch (TargetInvocationException)
+        {
+            return node;
+        }
+    }
+
+    /// <summary>Whether two nodes of the same type wrap the same object.</summary>
+    public static bool SameNode(object a, object b) =>
+        ReferenceEquals(a, b)
+        || (a != null && b != null && a.GetType() == b.GetType() && ReferenceEquals(Identity(a), Identity(b)));
 
     /// <summary>The object's name, from IPatchable or a "name" member, so list items can be told apart.</summary>
     public static string SummaryName(object value)

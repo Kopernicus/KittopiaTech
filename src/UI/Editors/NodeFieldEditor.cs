@@ -186,6 +186,10 @@ public sealed class NodeFieldEditor : FieldEditor<object>
     public override void Refresh()
     {
         var value = Source.Get();
+        // Keep the rows when the getter returned a new loader for the same object: rebuilding
+        // would close their pop-outs and leave their pending edits on the old loader.
+        if (Structure.SameNode(value, built))
+            value = built;
         bool removing = RemovalPending;
         string name = value != null ? Structure.SummaryName(value) : null;
         string type = removing ? "removed on Apply" : value?.GetType().Name ?? "none";

@@ -164,8 +164,9 @@ public sealed class EditSession : IEditScope
     /// <summary>Every object on a path from the body to an edited object.</summary>
     HashSet<object> FindPendingWithin()
     {
-        var owners = new HashSet<object>(pending.Keys.Select(s => s.Owner), ReferenceComparer.Instance);
-        var result = new HashSet<object>(ReferenceComparer.Instance);
+        // By what they wrap: the walk can meet a new loader for an edited one.
+        var owners = new HashSet<object>(pending.Keys.Select(s => s.Owner), NodeComparer.Instance);
+        var result = new HashSet<object>(NodeComparer.Instance);
         var seen = new HashSet<object>(ReferenceComparer.Instance);
         var path = new List<object>();
 
@@ -379,6 +380,16 @@ internal sealed class ReferenceComparer : IEqualityComparer<object>
     public new bool Equals(object x, object y) => ReferenceEquals(x, y);
 
     public int GetHashCode(object obj) => RuntimeHelpers.GetHashCode(obj);
+}
+
+/// <summary>Compares nodes with <see cref="Structure.SameNode"/>.</summary>
+internal sealed class NodeComparer : IEqualityComparer<object>
+{
+    public static readonly NodeComparer Instance = new();
+
+    public new bool Equals(object x, object y) => Structure.SameNode(x, y);
+
+    public int GetHashCode(object obj) => RuntimeHelpers.GetHashCode(Structure.Identity(obj));
 }
 
 /// <summary>A value source whose writes are staged in an <see cref="EditSession"/>.</summary>
