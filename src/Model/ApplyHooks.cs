@@ -199,6 +199,19 @@ public static class ApplyHooks
             RefreshScaledOnDemand?.Invoke(scaled.Material, [scaled.Value.scaledBody]);
     }
 
+    // Rings only have a material loader in Kopernicus builds that render them with one.
+    static readonly PropertyInfo RingMaterial = typeof(RingLoader).GetProperty("RingMaterial");
+
+    /// <summary>
+    /// Make sure to refresh the ring's textures too, if applicable.
+    /// </summary>
+    [ApplyHook(typeof(RingLoader), Order = 1)]
+    static void RefreshRingTextures(BodyContext body, RingLoader ring)
+    {
+        if (RingMaterial?.GetValue(ring) is MaterialLoader material)
+            RefreshScaledOnDemand?.Invoke(material, [ring.Value.gameObject]);
+    }
+
     [ApplyHook(typeof(PQSLoader), Order = -2)]
     static void RefreshSurfaceTextures(BodyContext body, PQSLoader pqs)
     {
