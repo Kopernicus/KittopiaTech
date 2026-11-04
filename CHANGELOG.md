@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v2.0.1
+Fix some CKAN metadata issues, no other changes.
+
 ## v2.0.0
 This release is basically a full rewrite of Kittopia.
 

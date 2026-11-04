@@ -47,6 +47,8 @@
       <Destination>$(GameDataOutDir)/KittopiaTech.version</Destination>
       <URL>https://github.com/Kopernicus/KittopiaTech/releases/latest/download/KittopiaTech.version</URL>
       <Download>https://github.com/Kopernicus/KittopiaTech/releases/latest</Download>
+      <!-- The minimum Kopernicus version in KittopiaTech.ckan needs KSP 1.12. -->
+      <KSP_Version_Min>1.12</KSP_Version_Min>
     </KSPVersionFile>
   </ItemGroup>
 
