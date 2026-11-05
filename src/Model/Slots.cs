@@ -46,6 +46,30 @@ public sealed class MemberSlot(object owner, MemberSchema member) : ISlot
         System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Owner) ^ Member.GetHashCode();
 }
 
+/// <summary>
+/// A body's place in FlightGlobals.Bodies, read-only since saves refer to bodies by it. Kopernicus
+/// has no parser target for the real index, only for the one a config requests.
+/// </summary>
+public sealed class FlightGlobalsIndexSlot(CelestialBody body) : ISlot
+{
+    public object Owner => body;
+    public MemberSchema Member => null;
+    public Type DeclaredType => typeof(int);
+    public string Label => "flightGlobalsIndex";
+    public bool CanWrite => false;
+
+    public object Read() => body.flightGlobalsIndex;
+
+    public void Write(object raw) => throw new InvalidOperationException($"{Label} is read-only");
+
+    public ISlot Rebind(Func<object, object> map) => new FlightGlobalsIndexSlot((CelestialBody)map(body));
+
+    public override bool Equals(object obj) =>
+        obj is FlightGlobalsIndexSlot other && ReferenceEquals(Owner, other.Owner);
+
+    public override int GetHashCode() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(body);
+}
+
 /// <param name="writeBack">
 /// Called after a write, for lists whose getter returns a copy that must be set back.
 /// </param>

@@ -102,6 +102,13 @@ public static class InspectorBuilder
     /// <param name="holder">The slot holding <paramref name="owner"/>, if it's a node.</param>
     public static void BuildMembers(Transform parent, IEditScope scope, object owner, ISlot holder = null)
     {
+        if (owner is Kopernicus.Configuration.Body body)
+        {
+            var indexSlot = new FlightGlobalsIndexSlot(body.CelestialBody);
+            var resolution = FieldEditorRegistry.Resolve(null, indexSlot.DeclaredType, MemberShape.Value);
+            FieldRow.Create(parent, scope.For(indexSlot, resolution.Adapter), resolution);
+        }
+
         // Any material's shader can be switched, which swaps its loader in the holder.
         var shaderSlot = MaterialShaderSlot.For(holder, owner);
         if (shaderSlot != null)
